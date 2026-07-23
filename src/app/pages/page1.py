@@ -59,7 +59,7 @@ else:
             # ============== 그래프 출력 ==============
             st.write("### 📈 그래프 영역")
             st.info(f""" 기업 : {info['company']} 기간 : {info['start']} ~ {info['end']} 그래프 : {info['graph']} """)
-            st.write("⬆️ 여기에 실제 그래프가 들어갑니다.")
+            st.write("실제 그래프")
             st.divider()
 
             # ============== 탭 삭제 ==============

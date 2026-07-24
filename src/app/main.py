@@ -4,6 +4,8 @@
 
 import streamlit as st
 
+# init_db()
+
 st.set_page_config(
     page_title="Test",
     page_icon="🚀",
@@ -47,11 +49,12 @@ page2 = st.Page("pages/page2.py", title="페이지2", icon="2️⃣")
 
 page3 = st.Page("pages/page3.py", title="페이지3", icon="3️⃣")
 
-pg = st.navigation([home, page1, page2, page3], position="hidden")
+page4 = st.Page("pages/service_center.py", title="서비스 센터", icon="🗺️")
+
+pg = st.navigation([home, page1, page2, page3, page4], position="hidden")
 
 # -------------------- Sidebar --------------------
 with st.sidebar:
-
     st.markdown(
         '<div class="sidebar-title">🚀 프로젝트 이름</div>', unsafe_allow_html=True
     )
@@ -60,6 +63,7 @@ with st.sidebar:
     st.page_link("pages/page1.py", label="페이지1", icon="1️⃣")
     st.page_link("pages/page2.py", label="페이지2", icon="2️⃣")
     st.page_link("pages/page3.py", label="페이지3", icon="3️⃣")
+    st.page_link("pages/service_center.py", label="서비스 센터", icon="🗺️")
 
     st.markdown("---")
 

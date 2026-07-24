@@ -37,4 +37,7 @@ htmlcov/
 
 # Streamlit
 .streamlit/secrets.toml
+<<<<<<< HEAD
 .env
+=======
+>>>>>>> chan

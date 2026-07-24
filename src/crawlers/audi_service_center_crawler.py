@@ -153,7 +153,6 @@ service_center_data = enrich_with_coords(
 )
 
 df = pd.DataFrame(service_center_data)
-os.makedirs("../crawled", exist_ok=True)
 df.to_csv("../crawled/audi_service_centers.csv", index=False, encoding="utf-8-sig")
 
 print("파일 생성 완료")

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import requests
 
@@ -10,53 +12,108 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
-all_rows = []
 
-page = 1
+CSV_PATH = Path("../crawled/hyundai_service_centers.csv")
 
-while True:
-    payload = {
-        "pageNo": page,
-        "selectBoxCity": "",
-        "searchWord": "",
-        "snGubunListSearch": "",
-        "selectBoxCitySearch": "",
-        "selectBoxTownShipSearch": "",
-        "asnCd": "",
-    }
 
-    response = requests.post(URL, headers=HEADERS, data=payload)
+def crawling_service_center(url, headers):
+    """
+    현대 서비스센터 API 데이터 수집
+    """
+    page = 1
+    service_data = []
 
-    response.raise_for_status()
+    while True:
+        payload = {
+            "pageNo": page,
+            "selectBoxCity": "",
+            "searchWord": "",
+            "snGubunListSearch": "",
+            "selectBoxCitySearch": "",
+            "selectBoxTownShipSearch": "",
+            "asnCd": "",
+        }
 
-    result = response.json()
+        response = requests.post(url, headers=headers, data=payload)
 
-    service_list = result["data"]["result"]
+        response.raise_for_status()
 
-    if not service_list:
-        break
+        result = response.json()
 
-    for item in service_list:
-        all_rows.append(
+        service_list = result["data"]["result"]
+
+        if not service_list:
+            break
+
+        service_data.extend(service_list)
+
+        page += 1
+
+    return service_data
+
+
+def parse_service_center(raw_data):
+    """
+    API 원본 데이터 → CSV 저장 형태 변환
+    """
+    rows = []
+
+    for item in raw_data:
+        rows.append(
             {
-                "센터코드": item.get("asnCd"),
-                "센터명": item.get("asnNm"),
-                "센터종류": item.get("apimCeqPlntNm"),
-                "주소": item.get("pbzAdrSbc"),
-                "전화번호": item.get("repnTn"),
-                "위도": item.get("mapLaeVal"),
-                "경도": item.get("mapLoeVal"),
-                "전기차수리": item.get("spcialSrvC001"),
-                "수소차수리": item.get("spcialSrvH001"),
+                "code": item.get("asnCd"),
+                "name": item.get("asnNm"),
+                "service_type": item.get("apimCeqPlntNm"),
+                "address": item.get("pbzAdrSbc"),
+                "phone": item.get("repnTn"),
+                "latitude": item.get("mapLaeVal"),
+                "longitude": item.get("mapLoeVal"),
+                "commercial_vehicle": item.get("spcialSrvC001"),
+                "ev_repair": item.get("spcialSrvH001"),
             }
         )
 
-    page += 1
+    return rows
 
-df = pd.DataFrame(all_rows)
 
-df.to_csv(
-    "../crawled/hyundai_service_centers.csv",
-    index=False,
-    encoding="utf-8-sig",
-)
+def save_csv(data, file_path):
+    """
+    CSV 파일 생성
+    """
+    df = pd.DataFrame(data)
+
+    df.to_csv(
+        file_path,
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+
+def check_csv_created(file_path):
+    """
+    CSV 생성 여부 확인
+    """
+    if file_path.exists():
+        size = file_path.stat().st_size
+
+        print(f"CSV 파일 생성 완료: {file_path}")
+        print(f"파일 크기: {size:,} bytes")
+
+        return True
+
+    print("CSV 파일 생성 실패")
+    return False
+
+
+def main():
+    raw_data = crawling_service_center(URL, HEADERS)
+
+    service_center_data = parse_service_center(raw_data)
+
+    save_csv(service_center_data, CSV_PATH)
+
+    check_csv_created(CSV_PATH)
+
+
+if __name__ == "__main__":
+    main()

@@ -4,6 +4,8 @@
 
 import streamlit as st
 
+# init_db()
+
 st.set_page_config(
     page_title="Test",
     page_icon="🚀",

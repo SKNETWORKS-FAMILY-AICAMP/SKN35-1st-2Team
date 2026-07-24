@@ -89,30 +89,21 @@ df = pd.DataFrame(data)
 
 col1, col2 = st.columns(2)
 
-
 with col1:
     city = st.selectbox(
         "시", ["전체", "서울특별시", "전북특별자치도", "강원특별자치도"]
     )
-
 
 with col2:
     district = st.selectbox("구/시", ["전체", "관악구", "전주시", "익산시", "원주시"])
 
 
 # ==============================
-# 버튼 클릭
+# 지도 렌더링 함수
 # ==============================
 
-if st.button("지도 검색"):
-    result = df.copy()
 
-    if city != "전체":
-        result = result[result["주소"].str.contains(city)]
-
-    if district != "전체":
-        result = result[result["주소"].str.contains(district)]
-
+def render_map(result: pd.DataFrame):
     st.dataframe(result)
 
     locations = result[["센터명", "주소", "전화번호", "위도", "경도"]].to_dict(
@@ -251,3 +242,35 @@ if st.button("지도 검색"):
     """
 
     components.html(html, height=620)
+
+
+# ==============================
+# 검색 상태 저장 (session_state)
+# ==============================
+
+# 앱이 처음 로드될 때는 전체 데이터를 기본값으로 사용
+if "map_result" not in st.session_state:
+    st.session_state["map_result"] = df.copy()
+
+
+# ==============================
+# 버튼 클릭 시 필터링 결과로 갱신
+# ==============================
+
+if st.button("지도 검색"):
+    result = df.copy()
+
+    if city != "전체":
+        result = result[result["주소"].str.contains(city)]
+
+    if district != "전체":
+        result = result[result["주소"].str.contains(district)]
+
+    st.session_state["map_result"] = result
+
+
+# ==============================
+# 지도는 항상 렌더링 (초기: 전체 데이터, 이후: 필터링된 데이터)
+# ==============================
+
+render_map(st.session_state["map_result"])

@@ -43,7 +43,7 @@ st.markdown(
 # -------------------- Page --------------------
 home = st.Page("pages/home.py", title="Home", icon="🏠")
 
-page1 = st.Page("pages/page1.py", title="페이지1", icon="1️⃣")
+page1 = st.Page("pages/Chart.py", title="Chart", icon="📈")
 
 page2 = st.Page("pages/page2.py", title="페이지2", icon="2️⃣")
 
@@ -60,7 +60,7 @@ with st.sidebar:
     )
 
     st.page_link("pages/home.py", label="Home", icon="🏠")
-    st.page_link("pages/page1.py", label="페이지1", icon="1️⃣")
+    st.page_link("pages/Chart.py", label="Chart", icon="📈")
     st.page_link("pages/page2.py", label="페이지2", icon="2️⃣")
     st.page_link("pages/page3.py", label="페이지3", icon="3️⃣")
     st.page_link("pages/service_center.py", label="서비스 센터", icon="🗺️")

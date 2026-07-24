@@ -1,4 +1,6 @@
 import streamlit as st
+
+# db 모듈을 import하기 위해 프로젝트 루트 경로를 sys.path에 추가
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))

@@ -3,9 +3,51 @@ import sqlite3
 import pandas as pd
 import os
 
+# db 모듈을 import하기 위해 프로젝트 루트 경로를 sys.path에 추가
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+# 검색 함수만 import 해오기
+from db.refind_data import search_recall
+
 st.set_page_config(page_title="자동차 리콜 검색", layout="wide")
 st.title("🚗 자동차 리콜·결함 정보 검색")
 
+st.subheader("🔎 조건 검색")
+
+col1, col2, col3 = st.columns([1, 1, 1.4])
+
+with col1:
+    manufacturer_list = ["전체","벤츠","비엠더블유","폭스바겐","현대자동차","기아"]
+    manufacturer = st.selectbox("기업(브랜드)", manufacturer_list)
+
+with col2:
+    model = st.text_input("차종", placeholder="검색")
+
+with col3:
+    keyword = st.text_input("결함 키워드 (선택)", placeholder="예: 브레이크, 엔진, 에어백")
+
+search_clicked = st.button("🔍 검색", use_container_width=True, type="primary")
+
+# 버튼 눌렸을때 처리
+if search_clicked:
+    # 위에서 받은 인자들을 함수에 넣어서 보내기
+    df = search_recall(manufacturer=manufacturer, model=model, keyword=keyword)
+
+    st.divider()
+    st.subheader("📋 검색 결과")
+
+    if df.empty:
+        st.warning("검색 결과가 없습니다.")
+    else:
+        st.dataframe(df, use_container_width=True)
+
+    st.divider()
+
+# ================================================================================================================
+# src/db/refind_data.py 에서 search_recall 함수를 좀 더 건들고 너 원하는 결과 나올 수 있도록 하면 될 거 같어
+# ================================================================================================================
 # DB_PATH = os.path.join(os.path.dirname(__file__), "..", "recall.db")
 
 # @st.cache_resource
@@ -45,29 +87,10 @@ st.title("🚗 자동차 리콜·결함 정보 검색")
 
 #     query += " ORDER BY recall_date DESC"
 #     return pd.read_sql_query(query, conn, params=params)
-
-
-st.subheader("🔎 조건 검색")
-
-col1, col2, col3 = st.columns([1, 1, 1.4])
-
-with col1:
-    # manufacturer_list = ["전체"] + get_manufacturers()
-    manufacturer_list = ["전체","벤츠","비엠더블유","폭스바겐","현대자동차","기아"]
-    manufacturer = st.selectbox("기업(브랜드)", manufacturer_list)
-
-with col2:
-    # model_list = ["전체"] + get_models(manufacturer)
+# manufacturer_list = ["전체"] + get_manufacturers()
+# model_list = ["전체"] + get_models(manufacturer)
     # model_list = ["검색"]
     # model = st.selectbox("차종", model_list)
-        keyword = st.text_input("차종", placeholder="검색")
-
-
-with col3:
-    keyword = st.text_input("결함 키워드 (선택)", placeholder="예: 브레이크, 엔진, 에어백")
-
-search_clicked = st.button("🔍 검색", use_container_width=True, type="primary")
-
 # if search_clicked:
 #     st.session_state.results = search_recalls(manufacturer, model, keyword)
 
@@ -83,10 +106,6 @@ search_clicked = st.button("🔍 검색", use_container_width=True, type="primar
 # m1.metric("검색된 리콜 건수", f"{len(df)}건")
 # m2.metric("대상 브랜드 수", df["manufacturer"].nunique() if len(df) > 0 else 0)
 # m3.metric("대상 차종 수", df["model_name"].nunique() if len(df) > 0 else 0)
-
-st.divider()
-st.subheader("📋 리콜 목록")
-
 # if len(df) == 0:
 #     st.warning("검색 조건에 맞는 리콜 정보가 없습니다.")
 # else:

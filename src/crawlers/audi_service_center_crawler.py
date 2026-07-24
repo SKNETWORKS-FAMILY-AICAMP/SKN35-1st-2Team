@@ -1,7 +1,9 @@
+import os
 import random
 import time
 
 import pandas as pd
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -9,6 +11,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+
+from src.services.geocoding import enrich_with_coords
+
+load_dotenv()
+
+KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 
 options = Options()
 options.add_argument("--start-maximized")
@@ -59,13 +67,29 @@ for region_index in range(len(region_list)):
 
         service_name = service.text
 
+        print(f"[진행중] {region_name} - {service_name}")
+
         service.click()
 
-        modal = wait.until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, ".BasicTeaser__StyledTextArea-sc-f76fc4da-3.iAySJt")
+        try:
+            modal = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        ".BasicTeaser__StyledTextArea-sc-f76fc4da-3.iAySJt",
+                    )
+                )
             )
-        )
+        except Exception:
+            print(f"[실패] {region_name} - {service_name}")
+            print("현재 URL:", driver.current_url)
+            os.makedirs("debug", exist_ok=True)
+            driver.save_screenshot(f"debug/{region_name}_{service_name}.png")
+            with open(
+                f"debug/{region_name}_{service_name}.html", "w", encoding="utf-8"
+            ) as f:
+                f.write(driver.page_source)
+            raise
 
         title = modal.find_element(By.TAG_NAME, "h2").text
 
@@ -120,7 +144,16 @@ for region_index in range(len(region_list)):
 
         time.sleep(random.uniform(1, 2))
 
+print("crawling 완료")
+
+service_center_data = enrich_with_coords(
+    service_center_data,
+    address_key="주소",
+    name_key="센터명",
+)
 
 df = pd.DataFrame(service_center_data)
+os.makedirs("../crawled", exist_ok=True)
+df.to_csv("../crawled/audi_service_centers.csv", index=False, encoding="utf-8-sig")
 
-df.to_csv("audi_service_centers.csv", index=False, encoding="utf-8-sig")
+print("파일 생성 완료")

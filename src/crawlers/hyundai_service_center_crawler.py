@@ -36,8 +36,6 @@ while True:
     if not service_list:
         break
 
-    print(f"{page}페이지 수집 완료 ({len(service_list)}건)")
-
     for item in service_list:
         all_rows.append(
             {
@@ -57,12 +55,8 @@ while True:
 
 df = pd.DataFrame(all_rows)
 
-print(f"\n총 {len(df)}개 서비스센터 수집 완료")
-
 df.to_csv(
-    "hyundai_service_centers.csv",
+    "../crawled/hyundai_service_centers.csv",
     index=False,
     encoding="utf-8-sig",
 )
-
-print("CSV 저장 완료 : hyundai_service_centers.csv")

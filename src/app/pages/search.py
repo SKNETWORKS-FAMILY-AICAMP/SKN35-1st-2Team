@@ -53,14 +53,14 @@ col1, col2, col3 = st.columns([1, 1, 1.4])
 
 with col1:
     # manufacturer_list = ["전체"] + get_manufacturers()
-    manufacturer_list = ["전체","비엠더블유","폭스바겐","현대자동차","기아"]
+    manufacturer_list = ["전체","벤츠","비엠더블유","폭스바겐","현대자동차","기아"]
     manufacturer = st.selectbox("기업(브랜드)", manufacturer_list)
 
 with col2:
     # model_list = ["전체"] + get_models(manufacturer)
     # model_list = ["검색"]
     # model = st.selectbox("차종", model_list)
-        keyword = st.text_input("차종", placeholder="검색란")
+        keyword = st.text_input("차종", placeholder="검색")
 
 
 with col3:

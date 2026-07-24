@@ -11,15 +11,7 @@ engine = create_engine(
     f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_DATABASE')}?charset=utf8mb4"
 )
 
-df = pd.read_csv("crawled/hyundai_service_centers.csv")
-
-mask = df["latitude"] > 90
-
-temp = df.loc[mask, "latitude"].copy()
-df.loc[mask, "latitude"] = df.loc[mask, "longitude"]
-df.loc[mask, "longitude"] = temp
-
-print(df.iloc[1])
+df = pd.read_csv("crawled/volkswagen_service_centers.csv")
 
 df.to_sql(
     name="service_center",

@@ -57,7 +57,11 @@ def get_coords(address=None, keyword=None, delay=0.2):
 
 
 def enrich_with_coords(
-    data_list, address_key="주소", name_key="센터명", lat_key="위도", lng_key="경도"
+    data_list,
+    address_key="주소",
+    name_key="센터명",
+    lat_key="latitude",
+    lng_key="longitude",
 ):
     """
     dict 리스트를 받아서 위도/경도 컬럼을 채워서 반환.

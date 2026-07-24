@@ -3,7 +3,6 @@ import random
 import time
 
 import pandas as pd
-from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -13,10 +12,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from src.services.geocoding import enrich_with_coords
-
-load_dotenv()
-
-KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 
 options = Options()
 options.add_argument("--start-maximized")

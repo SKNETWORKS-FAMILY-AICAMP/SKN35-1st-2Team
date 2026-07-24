@@ -1,28 +1,84 @@
-import os
 import pandas as pd
-from pathlib import Path
+from sqlalchemy import text
+from db.connect_db import get_engine
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DATA_PATH = BASE_DIR / "data" / "recall_data_en.csv"
-OUTPUT_PATH = BASE_DIR / "data" / "recall_data.csv"
+# ==============년도별 리콜건수==============
+def get_yearly_recall(company: str, start: int, end: int) -> pd.DataFrame:
+    engine = get_engine()
+    query = text("""
+        SELECT
+            YEAR(recall_start_date) AS 년도,
+            COUNT(*) AS 리콜건수
+        FROM car_recall
+        WHERE manufacturer LIKE :company
+          AND YEAR(recall_start_date) BETWEEN :start AND :end
+        GROUP BY YEAR(recall_start_date)
+        ORDER BY 년도
+    """)
 
-# CSV 읽기
-df = pd.read_csv(DATA_PATH)
+    with engine.connect() as conn:
+        df = pd.read_sql(
+            query,
+            conn,
+            params={
+                "company": f"%{company}%",
+                "start": start,
+                "end": end
+            }
+        )
 
-# 원하는 제조사 목록
-target_manufacturers = [
-    "벤츠",
-    "현대자동차",
-    "기아",
-    "비엠더블유",
-    "폭스바겐그룹"
-]
+    return df.set_index("년도")
 
-# manufacturer 컬럼 기준 필터링
-filtered_df = df[df["manufacturer"].isin(target_manufacturers)]
 
-# CSV 저장
-filtered_df.to_csv(OUTPUT_PATH, index=False, encoding="utf-8-sig")
+# ==============차종별 리콜건수==============
+def get_car_model_recall(company: str, start: int, end: int) -> pd.DataFrame:
+    engine = get_engine()
+    query = text("""
+        SELECT
+            model_name AS 차명,
+            COUNT(*) AS 리콜건수
+        FROM car_recall
+        WHERE manufacturer LIKE :company
+          AND YEAR(recall_start_date) BETWEEN :start AND :end
+        GROUP BY model_name
+        ORDER BY 리콜건수 DESC
+    """)
 
-print(f"저장 완료: {OUTPUT_PATH}")
-print(f"총 {len(filtered_df)}개 데이터")
+    with engine.connect() as conn:
+        df = pd.read_sql(
+            query,
+            conn,
+            params={
+                "company": f"%{company}%",
+                "start": start,
+                "end": end
+            }
+        )
+
+    return df.set_index("차명")
+
+
+# ==============최근 3년 리콜건수 추세==============
+def get_risk_trend(company: str) -> pd.DataFrame:
+    engine = get_engine()
+    query = text("""
+        SELECT
+            YEAR(recall_start_date) AS 년도,
+            COUNT(*) AS 리콜건수
+        FROM car_recall
+        WHERE manufacturer LIKE :company
+          AND YEAR(recall_start_date) >= YEAR(CURDATE()) - 2
+        GROUP BY YEAR(recall_start_date)
+        ORDER BY 년도
+    """)
+
+    with engine.connect() as conn:
+        df = pd.read_sql(
+            query,
+            conn,
+            params={
+                "company": f"%{company}%"
+            }
+        )
+
+    return df.set_index("년도")

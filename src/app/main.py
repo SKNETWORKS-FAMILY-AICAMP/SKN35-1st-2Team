@@ -45,7 +45,7 @@ page1 = st.Page("pages/page1.py", title="페이지1", icon="1️⃣")
 
 page2 = st.Page("pages/page2.py", title="페이지2", icon="2️⃣")
 
-page3 = st.Page("pages/page3.py", title="페이지3", icon="3️⃣")
+page3 = st.Page("pages/search.py", title="검색", icon="3️⃣")
 
 pg = st.navigation([home, page1, page2, page3], position="hidden")
 
@@ -59,7 +59,7 @@ with st.sidebar:
     st.page_link("pages/home.py", label="Home", icon="🏠")
     st.page_link("pages/page1.py", label="페이지1", icon="1️⃣")
     st.page_link("pages/page2.py", label="페이지2", icon="2️⃣")
-    st.page_link("pages/page3.py", label="페이지3", icon="3️⃣")
+    st.page_link("pages/search.py", label="검색", icon="3️⃣")
 
     st.markdown("---")
 

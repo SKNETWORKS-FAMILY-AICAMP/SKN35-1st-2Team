@@ -1,3 +1,5 @@
+# crawling 해온 데이터(csv 파일)을 service_center 테이블에 저장
+
 import os
 from pathlib import Path
 

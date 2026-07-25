@@ -1,3 +1,5 @@
+# kakao map을 활용하여 주소 값을 통한 위도 및 경도 데이터 추가 함수
+
 import os
 import time
 

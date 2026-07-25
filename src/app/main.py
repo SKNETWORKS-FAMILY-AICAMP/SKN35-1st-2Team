@@ -47,11 +47,17 @@ page1 = st.Page("pages/Chart.py", title="Chart", icon="📈")
 
 page2 = st.Page("pages/search.py", title="Search", icon="🔍")
 
-page3 = st.Page("pages/page3.py", title="페이지3", icon="3️⃣")
+page3 = st.Page("pages/news.py", title="소식", icon="📰")
 
 page4 = st.Page("pages/service_center.py", title="서비스 센터", icon="🗺️")
 
-pg = st.navigation([home, page1, page2, page3, page4], position="hidden")
+page5 = st.Page("pages/community.py", title="소통공간", icon="💬")
+
+page6 = st.Page("pages/create_page.py", title="글작성")
+
+page7 = st.Page("pages/edit_page.py", title="글수정")
+
+pg = st.navigation([home, page1, page2, page3, page4, page5, page6, page7], position="hidden")
 
 # -------------------- Sidebar --------------------
 with st.sidebar:
@@ -62,8 +68,9 @@ with st.sidebar:
     st.page_link("pages/home.py", label="Home", icon="🏠")
     st.page_link("pages/Chart.py", label="Chart", icon="📈")
     st.page_link("pages/search.py", label="Search", icon="🔍")
-    st.page_link("pages/page3.py", label="페이지3", icon="3️⃣")
+    st.page_link("pages/news.py", label="소식", icon="📰")
     st.page_link("pages/service_center.py", label="서비스 센터", icon="🗺️")
+    st.page_link("pages/community.py", label="소통공간", icon="💬")
 
     st.markdown("---")
 

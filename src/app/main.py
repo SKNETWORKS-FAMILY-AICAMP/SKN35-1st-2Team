@@ -2,6 +2,17 @@
 #  uv run streamlit run src/app/main.py
 # ------------------------------------------
 
+import os
+import sys
+
+# src 및 루트 디렉토리를 sys.path 최상단에 추가 (ModuleNotFoundError 예방)
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 import streamlit as st
 from db.db_utils import init_db
 
@@ -58,7 +69,9 @@ page6 = st.Page("pages/create_page.py", title="글작성")
 
 page7 = st.Page("pages/edit_page.py", title="글수정")
 
-pg = st.navigation([home, page1, page2, page3, page4, page5, page6, page7], position="hidden")
+page8 = st.Page("pages/detail_page.py", title="게시글 상세")
+
+pg = st.navigation([home, page1, page2, page3, page4, page5, page6, page7, page8], position="hidden")
 
 # -------------------- Sidebar --------------------
 with st.sidebar:

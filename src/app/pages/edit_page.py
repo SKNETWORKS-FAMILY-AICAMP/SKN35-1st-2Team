@@ -12,7 +12,7 @@ if ROOT_DIR not in sys.path:
 
 from db.db_utils import get_post, update_post, delete_post, verify_post_password, BRANDS, CATEGORIES
 
-st.set_page_config(page_title="글 수정", page_icon="🛠️", layout="wide")
+st.set_page_config(page_title="게시글 수정", page_icon="🛠️", layout="wide")
 
 if st.button("← 목록으로 가기"):
     st.switch_page("pages/community.py")
@@ -46,11 +46,7 @@ with st.form("edit_form"):
     content = st.text_area("내용 *", value=post["content"], height=220)
     password_input = st.text_input("비밀번호 확인 *", type="password", placeholder="게시글 작성 시 등록한 비밀번호를 입력하세요.")
 
-    save_col, delete_col = st.columns([3, 1])
-    with save_col:
-        submitted = st.form_submit_button("수정 완료", type="primary", use_container_width=True)
-    with delete_col:
-        deleted = st.form_submit_button("삭제", use_container_width=True)
+    submitted = st.form_submit_button("수정 완료", type="primary", use_container_width=True)
 
     if submitted:
         if not title.strip() or not content.strip():
@@ -62,16 +58,5 @@ with st.form("edit_form"):
         else:
             update_post(post_id, title.strip(), content.strip(), brand, model.strip(), category)
             st.success("게시글이 수정되었습니다!")
-            del st.session_state["edit_post_id"]
-            st.switch_page("pages/community.py")
-
-    if deleted:
-        if not password_input.strip():
-            st.error("삭제하려면 작성 시 입력한 비밀번호를 입력해야 합니다.")
-        elif not verify_post_password(post_id, password_input.strip()):
-            st.error("비밀번호가 일치하지 않습니다.")
-        else:
-            delete_post(post_id)
-            st.success("게시글이 삭제되었습니다.")
             del st.session_state["edit_post_id"]
             st.switch_page("pages/community.py")

@@ -12,7 +12,19 @@ if ROOT_DIR not in sys.path:
 
 from db.db_utils import add_post, BRANDS, CATEGORIES
 
-st.set_page_config(page_title="글쓰기", page_icon="✏️", layout="wide")
+st.set_page_config(page_title="새 게시글 작성", page_icon="✏️", layout="wide")
+
+# 헤더 앵커 링크 아이콘 숨김 처리 CSS
+st.markdown(
+    """
+    <style>
+    a.header-anchor {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 if st.button("← 목록으로 가기"):
     st.switch_page("pages/community.py")

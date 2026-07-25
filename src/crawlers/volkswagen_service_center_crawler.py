@@ -11,60 +11,139 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from src.services.geocoding import enrich_with_coords
+from src.services.phone_format import format_phone
 
 ROOT = Path(__file__).resolve().parents[2]
+
 SAVE_PATH = ROOT / "crawled" / "volkswagen_service_centers.csv"
 
-options = Options()
-options.add_argument("--start-maximized")
+URL = "https://www.volkswagen.co.kr/app/locals/information/map/servicecenter.jsp"
 
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=options)
-url = "https://www.volkswagen.co.kr/app/locals/information/map/servicecenter.jsp"
 
-driver.get(url)
+def create_driver():
+    """
+    Selenium WebDriver 생성
+    """
 
-wait = WebDriverWait(driver, 20)
-accordion_item = wait.until(
-    EC.presence_of_all_elements_located((By.CLASS_NAME, "accordion-item"))
-)
+    options = Options()
 
-volkswagen_crawling_list = []
+    options.add_argument("--start-maximized")
 
-for item in accordion_item:
-    volkswagen_crawling_dict = {}
-    header_item = item.find_element(By.CLASS_NAME, "header-item")
-    header_address = header_item.find_element(By.CLASS_NAME, "address")
-    header_dealer = header_item.find_element(By.CLASS_NAME, "dealer")
+    service = Service(ChromeDriverManager().install())
 
-    volkswagen_crawling_dict["address"] = header_address.text
-    volkswagen_crawling_dict["name"] = header_dealer.text
-
-    header_button = item.find_element(By.CLASS_NAME, "accordion-btn")
-
-    header_button.click()
-
-    wait.until(
-        lambda d: item.find_element(By.CLASS_NAME, "infor-wrap").text.strip() != ""
+    return webdriver.Chrome(
+        service=service,
+        options=options,
     )
 
-    panel_item = item.find_element(By.CLASS_NAME, "infor-wrap")
 
-    panel_text_wrap = panel_item.find_elements(By.CLASS_NAME, "text-wrap")
-    volkswagen_crawling_dict["phone"] = panel_text_wrap[1].text
+def crawl_volkswagen_page(driver):
+    """
+    폭스바겐 서비스센터 크롤링
+    """
 
-    volkswagen_crawling_dict["company"] = "폭스바겐"
+    wait = WebDriverWait(driver, 30)
 
-    volkswagen_crawling_list.append(volkswagen_crawling_dict)
+    accordion_items = wait.until(
+        EC.presence_of_all_elements_located((By.CLASS_NAME, "accordion-item"))
+    )
 
-    time.sleep(1)
+    result = []
+
+    for index, item in enumerate(accordion_items, start=1):
+        try:
+            header_item = item.find_element(By.CLASS_NAME, "header-item")
+
+            address = header_item.find_element(By.CLASS_NAME, "address").text.strip()
+
+            name = header_item.find_element(By.CLASS_NAME, "dealer").text.strip()
+
+            button = item.find_element(By.CLASS_NAME, "accordion-btn")
+
+            driver.execute_script("arguments[0].click();", button)
+
+            wait.until(
+                lambda d: (
+                    item.find_element(By.CLASS_NAME, "infor-wrap").text.strip() != ""
+                )
+            )
+
+            info_wrap = item.find_element(By.CLASS_NAME, "infor-wrap")
+
+            text_wraps = info_wrap.find_elements(By.CLASS_NAME, "text-wrap")
+
+            phone = None
+
+            if len(text_wraps) > 1:
+                phone = format_phone(text_wraps[1].text)
+
+            result.append(
+                {
+                    "name": name,
+                    "address": address,
+                    "phone": phone,
+                    "company": "폭스바겐",
+                }
+            )
+
+            print(f"[{index}/{len(accordion_items)}] 저장 : {name}")
+
+            time.sleep(0.5)
+
+        except Exception as e:
+            print(f"[{index}] 크롤링 실패:", e)
+
+    return result
 
 
-volkswagen_service_center_data = enrich_with_coords(
-    volkswagen_crawling_list,
-    address_key="address",
-    name_key="name",
-)
-df = pd.DataFrame(volkswagen_service_center_data)
+def parse_service_center(data):
+    """
+    CSV 규격 통일
+    """
 
-df.to_csv(SAVE_PATH, index=False, encoding="utf-8-sig")
+    return {
+        "name": data.get("name"),
+        "address": data.get("address"),
+        "phone": data.get("phone"),
+        "company": data.get("company"),
+    }
+
+
+def save_csv(data):
+
+    df = pd.DataFrame(data)
+
+    df.to_csv(
+        SAVE_PATH,
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+
+def main():
+
+    driver = create_driver()
+
+    try:
+        driver.get(URL)
+
+        raw_data = crawl_volkswagen_page(driver)
+
+        service_center_data = [parse_service_center(item) for item in raw_data]
+
+        service_center_data = enrich_with_coords(
+            service_center_data,
+            address_key="address",
+            name_key="name",
+        )
+
+        save_csv(service_center_data)
+
+        print(f"\n폭스바겐 서비스센터 {len(service_center_data)}건 저장 완료")
+
+    finally:
+        driver.quit()
+
+
+if __name__ == "__main__":
+    main()

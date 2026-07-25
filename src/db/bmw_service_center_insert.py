@@ -11,10 +11,10 @@ engine = create_engine(
     f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_DATABASE')}?charset=utf8mb4"
 )
 
-df = pd.read_csv("crawled/audi_service_centers.csv")
+df = pd.read_csv("crawled/bmw_service_centers.csv")
 
 df.to_sql(
-    name="audi_service_center",
+    name="service_center",
     con=engine,
     if_exists="append",  # 기존 데이터 유지하고 추가
     index=False,

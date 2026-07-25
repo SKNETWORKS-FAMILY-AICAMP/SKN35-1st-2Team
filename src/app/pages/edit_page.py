@@ -1,5 +1,16 @@
+import os
+import sys
 import streamlit as st
-from db_utils import get_post, update_post, delete_post, BRANDS, CATEGORIES
+
+# src 및 루트 디렉토리를 sys.path 최상단에 추가
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from db.db_utils import get_post, update_post, delete_post, verify_post_password, BRANDS, CATEGORIES
 
 st.set_page_config(page_title="글 수정", page_icon="🛠️", layout="wide")
 
@@ -33,6 +44,7 @@ with st.form("edit_form"):
             index=CATEGORIES.index(post["category"]) if post["category"] in CATEGORIES else 0,
         )
     content = st.text_area("내용 *", value=post["content"], height=220)
+    password_input = st.text_input("비밀번호 확인 *", type="password", placeholder="게시글 작성 시 등록한 비밀번호를 입력하세요.")
 
     save_col, delete_col = st.columns([3, 1])
     with save_col:
@@ -43,6 +55,10 @@ with st.form("edit_form"):
     if submitted:
         if not title.strip() or not content.strip():
             st.error("제목과 내용은 필수 입력 항목입니다.")
+        elif not password_input.strip():
+            st.error("수정하려면 작성 시 입력한 비밀번호를 입력해야 합니다.")
+        elif not verify_post_password(post_id, password_input.strip()):
+            st.error("비밀번호가 일치하지 않습니다.")
         else:
             update_post(post_id, title.strip(), content.strip(), brand, model.strip(), category)
             st.success("게시글이 수정되었습니다!")
@@ -50,7 +66,12 @@ with st.form("edit_form"):
             st.switch_page("pages/community.py")
 
     if deleted:
-        delete_post(post_id)
-        st.success("게시글이 삭제되었습니다.")
-        del st.session_state["edit_post_id"]
-        st.switch_page("pages/community.py")
+        if not password_input.strip():
+            st.error("삭제하려면 작성 시 입력한 비밀번호를 입력해야 합니다.")
+        elif not verify_post_password(post_id, password_input.strip()):
+            st.error("비밀번호가 일치하지 않습니다.")
+        else:
+            delete_post(post_id)
+            st.success("게시글이 삭제되었습니다.")
+            del st.session_state["edit_post_id"]
+            st.switch_page("pages/community.py")

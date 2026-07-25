@@ -3,8 +3,9 @@
 # ------------------------------------------
 
 import streamlit as st
+from db.db_utils import init_db
 
-# init_db()
+init_db()
 
 st.set_page_config(
     page_title="Test",

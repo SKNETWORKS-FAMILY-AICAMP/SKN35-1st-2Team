@@ -1,5 +1,14 @@
+import os
+import sys
 import streamlit as st
 
+# src 및 루트 디렉토리를 sys.path 최상단에 추가
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 # 데이터베이스 처리를 위한 유틸리티 함수와 상수들 가져오기
 from db.db_utils import (

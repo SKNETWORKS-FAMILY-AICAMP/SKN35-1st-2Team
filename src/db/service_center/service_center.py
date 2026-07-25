@@ -1,6 +1,6 @@
 import pandas as pd
 
-from db.db import get_db_connection
+from db.database import get_db_connection
 
 ALL_LABEL = "전체"
 

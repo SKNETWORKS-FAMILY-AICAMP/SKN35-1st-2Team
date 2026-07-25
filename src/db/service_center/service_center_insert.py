@@ -95,7 +95,7 @@ def insert_service_center(
 
 
 if __name__ == "__main__":
-    ROOT = Path(__file__).resolve().parents[2]
+    ROOT = Path(__file__).resolve().parents[3]
 
     insert_service_center(ROOT / "crawled" / "benz_service_centers.csv")
     insert_service_center(ROOT / "crawled" / "bmw_service_centers.csv")

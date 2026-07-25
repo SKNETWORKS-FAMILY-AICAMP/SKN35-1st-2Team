@@ -369,16 +369,17 @@ def render_map(df, accent, accent_dark):
 var data = {location_json};
 var accentColor = "{accent}";
 
-var map = new kakao.maps.Map(
-    document.getElementById("map"),
-    {{
-        center: new kakao.maps.LatLng(36.5, 127.8),
-        level: 13
-    }}
-);
+var container = document.getElementById("map");
+var options = {{
+    center: new kakao.maps.LatLng(36.5, 127.8),
+    level: 12
+}};
+
+var map = new kakao.maps.Map(container, options);
 
 var bounds = new kakao.maps.LatLngBounds();
 var activeInfoWindow = null;
+var validMarkerCount = 0;
 
 var markerImage = new kakao.maps.MarkerImage(
     "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
@@ -392,7 +393,15 @@ var markerImage = new kakao.maps.MarkerImage(
 );
 
 data.forEach(function(center) {{
-    var position = new kakao.maps.LatLng(center.위도, center.경도);
+    // 숫자형 좌표 체크 및 한국 영역 내 범위 체크 (위도 33~39, 경도 124~132)
+    var lat = parseFloat(center.위도);
+    var lng = parseFloat(center.경도);
+
+    if (isNaN(lat) || isNaN(lng) || lat < 33 || lat > 39 || lng < 124 || lng > 132) {{
+        return;
+    }}
+
+    var position = new kakao.maps.LatLng(lat, lng);
 
     var marker = new kakao.maps.Marker({{
         map: map,
@@ -422,11 +431,22 @@ data.forEach(function(center) {{
     }});
 
     bounds.extend(position);
+    validMarkerCount++;
 }});
 
-if (data.length > 0) {{
-    map.setBounds(bounds);
+// 데이터 이동 및 줌 영역 재설정
+if (validMarkerCount > 0) {{
+    // 마커가 1개인 경우 해당 마커 위치로 이동 후 레벨 조정
+    if (validMarkerCount === 1) {{
+        map.setCenter(bounds.getSouthWest());
+        map.setLevel(4);
+    }} else {{
+        map.setBounds(bounds);
+    }}
 }}
+
+// Iframe 로딩 및 setBounds 이후 지도가 깨지지 않도록 relayout만 호출
+map.relayout();
 </script>
 
 </body>

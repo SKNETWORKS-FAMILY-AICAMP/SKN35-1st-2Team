@@ -1,8 +1,10 @@
-CREATE DATABASE car_recall; -- 데이터베이스 미생성 시 실행
+SHOW DATABASES; -- 데이터 베이스 존재 확인
+
+CREATE DATABASE car_recall; -- car_recall 데이터베이스가 존재하지 않는다면 실행하여 생성
 
 USE car_recall; -- 데이터베이스 선택
 
-SELECT DATABASE(); -- car_recall 데이터베이스 선택 확인
+SELECT DATABASE(); -- 사용중인 데이터베이스 확인
 
 -- 서비스 센터 테이블
 CREATE TABLE service_center (
@@ -36,3 +38,6 @@ COLLATE=utf8mb4_unicode_ci;
 
 -- 생성된 테이블 확인
 SHOW TABLES;
+
+SELECT * FROM service_center;
+SELECT * FROM legal_dong;

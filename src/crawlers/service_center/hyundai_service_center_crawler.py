@@ -1,7 +1,11 @@
+# hyundai 서비스 센터 crawler
+
 from pathlib import Path
 
 import pandas as pd
 import requests
+
+from src.services.phone_format import format_phone
 
 URL = "https://www.hyundai.com/wsvc/kr/front/biz/serviceNetwork.list.do"
 
@@ -12,8 +16,8 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
-
-CSV_PATH = Path("../crawled/hyundai_service_centers.csv")
+ROOT = Path(__file__).resolve().parents[2]
+SAVE_PATH = ROOT / "crawled" / "hyundai_service_centers.csv"
 
 
 def crawling_service_center(url, headers):
@@ -61,15 +65,12 @@ def parse_service_center(raw_data):
     for item in raw_data:
         rows.append(
             {
-                "code": item.get("asnCd"),
                 "name": item.get("asnNm"),
-                "service_type": item.get("apimCeqPlntNm"),
                 "address": item.get("pbzAdrSbc"),
-                "phone": item.get("repnTn"),
+                "phone": format_phone(item.get("repnTn")),
                 "latitude": item.get("mapLaeVal"),
                 "longitude": item.get("mapLoeVal"),
-                "commercial_vehicle": item.get("spcialSrvC001"),
-                "ev_repair": item.get("spcialSrvH001"),
+                "company": "현대",
             }
         )
 
@@ -110,9 +111,9 @@ def main():
 
     service_center_data = parse_service_center(raw_data)
 
-    save_csv(service_center_data, CSV_PATH)
+    save_csv(service_center_data, SAVE_PATH)
 
-    check_csv_created(CSV_PATH)
+    check_csv_created(SAVE_PATH)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-# 수정일자: 2026-07-26
 import os
 import sys
 import math

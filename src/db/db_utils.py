@@ -1,4 +1,3 @@
-# 수정일자: 2026-07-26
 """
 공용 DB 유틸 (MySQL 기반)
 모든 페이지(main, community, create_page, edit_page, ...)에서 사용됩니다.

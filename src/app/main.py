@@ -69,7 +69,7 @@ page1 = st.Page("pages/Chart.py", title="Chart", icon="📈")
 
 page2 = st.Page("pages/search.py", title="Search", icon="🔍")
 
-page3 = st.Page("pages/page3.py", title="페이지3", icon="3️⃣")
+page3 = st.Page("pages/FAQ.py", title="FAQ", icon="❓")
 
 page4 = st.Page("pages/service_center.py", title="서비스 센터", icon="🗺️")
 
@@ -84,7 +84,7 @@ with st.sidebar:
     st.page_link("pages/home.py", label="Home", icon="🏠")
     st.page_link("pages/Chart.py", label="Chart", icon="📈")
     st.page_link("pages/search.py", label="Search", icon="🔍")
-    st.page_link("pages/page3.py", label="페이지3", icon="3️⃣")
+    st.page_link("pages/FAQ.py", label="FAQ", icon="❓")
     st.page_link("pages/service_center.py", label="서비스 센터", icon="🗺️")
 
     st.markdown("---")

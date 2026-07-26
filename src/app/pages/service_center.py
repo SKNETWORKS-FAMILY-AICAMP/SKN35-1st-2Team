@@ -38,7 +38,7 @@ def hex_to_rgba(hex_color: str, alpha: float) -> str:
 # 페이지 기본 설정 및 세션 상태 초기화
 # ==========================
 st.set_page_config(
-    page_title="자동차 서비스센터 찾기",
+    page_title="서비스 센터",
     page_icon="🔧",
     layout="wide",
 )
@@ -54,6 +54,16 @@ if "applied_sigungu" not in st.session_state:
     st.session_state["applied_sigungu"] = "전체"
 
 # 현재 확정/적용된 테마 색상 계산
+brand_name_dict = {
+    "현대": "Hyundai",
+    "기아": "Kia",
+    "벤츠": "Mercedes-Benz",
+    "BMW": "BMW",
+    "폭스바겐": "Volkswagen",
+}
+
+brand_name = brand_name_dict[st.session_state["applied_company"]]
+
 applied_company = st.session_state["applied_company"]
 _accent = BRAND_COLORS.get(applied_company, DEFAULT_ACCENT)
 ACCENT = _accent["main"]
@@ -279,10 +289,10 @@ st.markdown(
 <div class="main-header">
     <div>
         <div class="eyebrow">Official Service Network</div>
-        <h1>자동차 서비스센터 찾기</h1>
+        <h1>Service Center</h1>
         <p>지역과 제조사를 선택하여 주변 공식 서비스센터 위치 및 상세 정보를 확인하세요.</p>
     </div>
-    <div class="brand-chip">🔧 {applied_company} 공식 네트워크</div>
+    <div class="brand-chip">🔧 {brand_name} Service Center</div>
 </div>
 """,
     unsafe_allow_html=True,

@@ -16,7 +16,7 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SAVE_PATH = ROOT / "crawled" / "hyundai_service_centers.csv"
 
 

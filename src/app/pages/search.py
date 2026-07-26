@@ -26,7 +26,7 @@ with col2:
     model = st.text_input("차종", placeholder="검색")
 
 with col3:
-    keyword = st.text_input("결함 키워드 (선택)", placeholder="예: 브레이크, 엔진, 에어백")
+    keyword = st.text_input("결함 키워드", placeholder="예: 브레이크, 엔진, 에어백")
 
 search_clicked = st.button("🔍 검색", use_container_width=True, type="primary")
 

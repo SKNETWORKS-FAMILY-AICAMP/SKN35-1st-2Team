@@ -35,7 +35,7 @@ st.markdown(
 
 .sidebar-title{
     text-align:center;
-    font-size:28px;
+    font-size:26px;
     font-weight:bold;
     margin-bottom:30px;
 }

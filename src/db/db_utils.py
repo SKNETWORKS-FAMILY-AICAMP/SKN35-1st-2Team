@@ -20,11 +20,11 @@ BRANDS = ["현대", "기아", "제네시스", "쉐보레", "르노코리아", "K
 def get_conn():
     """MySQL 연결 커넥션 객체 생성 및 반환 (.env 설정 활용)"""
     return mysql.connector.connect(
-        host=os.path.getenv("DB_HOST", "localhost"),
-        user=os.path.getenv("DB_USERNAME", "root"),
-        password=os.path.getenv("DB_PASSWORD", "1234"),
-        database=os.path.getenv("DB_DATABASE", "car_recall"),
-        port=int(os.path.getenv("DB_PORT", "3306")),
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USERNAME", "root"),
+        password=os.getenv("DB_PASSWORD", "1234"),
+        database=os.getenv("DB_DATABASE", "car_recall"),
+        port=int(os.getenv("DB_PORT", "3306")),
     )
 
 

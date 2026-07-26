@@ -4,8 +4,8 @@ USE car_recall;
 
 CREATE TABLE car_recall (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    manufacturer VARCHAR(30),       -- 제작자
-    model_name VARCHAR(20),         -- 차명
+    manufacturer VARCHAR(50),       -- 제작자
+    model_name VARCHAR(100),         -- 차명
     production_start DATE,          -- 생산기간(부터)
     production_end DATE,            -- 생산기간(까지)
     recall_start_date DATE,         -- 리콜개시일

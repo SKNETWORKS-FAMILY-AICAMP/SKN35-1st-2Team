@@ -7,9 +7,21 @@ sys.path.append(
     str(Path(__file__).resolve().parents[1])
 )  # ------------------------------------------
 
-import streamlit as st
+import os
+import sys
 
-# init_db()
+# src 및 루트 디렉토리를 sys.path 최상단에 추가 (ModuleNotFoundError 예방)
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+import streamlit as st
+from db.db_utils import init_db
+
+init_db()
 
 st.set_page_config(
     page_title="Test",
@@ -26,10 +38,14 @@ st.markdown(
 section[data-testid="stSidebar"] {
     width: 260px !important;
 }
-
 /* 2. 상단 헤더 위치 보정 (가려짐 방지) 및 본문 패딩 조정 */
 header[data-testid="stHeader"] {
     z-index: 99;
+.sidebar-title{
+    text-align:center;
+    font-size:26px;
+    font-weight:bold;
+    margin-bottom:30px;
 }
 
 /* 3. 본문 영역을 전체 화면 기준 중앙 정렬 및 반응형 여백 적용 */
@@ -71,9 +87,19 @@ page2 = st.Page("pages/search.py", title="Search", icon="🔍")
 
 page3 = st.Page("pages/FAQ.py", title="FAQ", icon="❓")
 
-page4 = st.Page("pages/service_center.py", title="서비스 센터", icon="🗺️")
+page4 = st.Page("pages/news.py", title="소식", icon="📰")
 
-pg = st.navigation([home, page1, page2, page3, page4], position="hidden")
+page5 = st.Page("pages/service_center.py", title="서비스 센터", icon="🗺️")
+
+page6 = st.Page("pages/community.py", title="소통공간", icon="💬")
+
+page7 = st.Page("pages/create_page.py", title="글작성")
+
+page8 = st.Page("pages/edit_page.py", title="글수정")
+
+page9 = st.Page("pages/detail_page.py", title="게시글 상세")
+
+pg = st.navigation([home, page1, page2, page3, page4, page5, page6, page7, page8, page9], position="hidden")
 
 # -------------------- Sidebar --------------------
 with st.sidebar:
@@ -85,7 +111,9 @@ with st.sidebar:
     st.page_link("pages/Chart.py", label="Chart", icon="📈")
     st.page_link("pages/search.py", label="Search", icon="🔍")
     st.page_link("pages/FAQ.py", label="FAQ", icon="❓")
+    st.page_link("pages/news.py", label="소식", icon="📰")
     st.page_link("pages/service_center.py", label="서비스 센터", icon="🗺️")
+    st.page_link("pages/community.py", label="소통공간", icon="💬")
 
     st.markdown("---")
 

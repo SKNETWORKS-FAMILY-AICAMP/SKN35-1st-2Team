@@ -20,7 +20,7 @@ if "tabs" not in st.session_state:
     st.session_state.tabs = []
     
 # ============== 기업 선택 ==============
-companies = ["현대", "기아", "BMW"]
+companies = ["현대", "기아", "BMW", "벤츠" , "폭스바겐"]
 selected_company = st.radio("기업 선택", companies,horizontal=True)
 
 # ============== 탭 추가 ==============

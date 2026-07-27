@@ -75,20 +75,21 @@ st.markdown(
     }
 
     .news-title {
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 1.4;
-        color: inherit !important;
-        margin-bottom: 4px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.4;
+    color: #0F172A !important;
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
     }
     /* 뉴스 본문 카드 요약 외곽 상자 */
     .news-summary-box {
-        background-color: rgba(128, 128, 128, 0.1) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        padding: 12px 16px !important;
-        border-radius: 6px !important;
-        margin: 10px 0 !important;
-        overflow: hidden !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E7EAF0 !important;
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+    margin: 10px 0 !important;
     }
 
     /* 뉴스 본문 카드 요약 2줄 제한 텍스트 (패딩 0으로 3번째 줄 유출 차단) */
@@ -96,7 +97,7 @@ st.markdown(
         font-size: 14.5px !important;
         line-height: 1.4em !important;
         max-height: 2.8em !important; /* 1.4em * 2줄 = 정확히 2.8em */
-        color: inherit !important;
+        color: #1F2937 !important;
         margin: 0 !important;
         padding: 0 !important;
         display: -webkit-box !important;
@@ -108,39 +109,6 @@ st.markdown(
     }
     .news-summary-text mark {
         color: #111111 !important;
-    }
-
-    /* 다크모드 대응 (OS/브라우저 및 Streamlit 설정 다크 테마 지원) */
-    @media (prefers-color-scheme: dark) {
-        a.news-link-btn,
-        div[data-testid="stMarkdownContainer"] a.news-link-btn,
-        .stMarkdown a.news-link-btn {
-            background-color: #000000 !important;
-            color: #ffffff !important;
-            border: 1px solid #333333 !important;
-            box-shadow: none !important;
-        }
-        a.news-link-btn:hover,
-        div[data-testid="stMarkdownContainer"] a.news-link-btn:hover {
-            background-color: #1a1a1a !important;
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        .news-summary-box {
-            color: #ffffff !important;
-            background-color: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        }
-        .news-summary-text {
-            color: #ffffff !important;
-        }
-        .news-title {
-            color: #e2e8f0 !important;
-        }
-        div[data-testid="stCaptionContainer"],
-        div[data-testid="stCaptionContainer"] * {
-            color: #cbd5e1 !important;
-        }
     }
 
     [data-theme="dark"] a.news-link-btn,
@@ -205,7 +173,18 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.write("자동차 리콜·결함 관련 최신 뉴스를 한눈에 확인해 보세요.")
+st.markdown(
+    """
+    <p style="
+        color:#64748B;
+        font-size:0.94rem;
+        margin-top:-10px;
+    ">
+    자동차 리콜·결함 관련 최신 뉴스를 한눈에 확인해 보세요.
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
 
 # 3. 검색 필터 세션 상태 초기화 (페이지 이동 후 복귀 시 100% 필터 유지)
 NEWS_SEARCH_DEFAULTS = {

@@ -94,7 +94,7 @@ with col_news:
                     else raw_title
                 )
                 st.markdown(
-                    f"**{news['author'] or '국토교통부'}** | {display_title}"
+                    f"**{news['source'] or '국토교통부'}** | {display_title}"
                 )
                 st.caption(f"보도일자 : {news['date']}")
 

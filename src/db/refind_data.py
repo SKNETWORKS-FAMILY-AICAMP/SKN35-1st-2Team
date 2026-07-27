@@ -195,8 +195,8 @@ def get_news(limit=3):
     query = text("""
         SELECT
             title,
-            author,
-            date
+            source,
+            published_at AS date
         FROM news
         ORDER BY RAND()
         LIMIT :limit

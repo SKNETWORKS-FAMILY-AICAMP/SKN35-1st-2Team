@@ -24,12 +24,6 @@ from db.db_utils import init_db
 
 init_db()
 
-st.set_page_config(
-    page_title="Test",
-    page_icon="🚀",
-    layout="wide",
-)
-
 # -------------------- CSS --------------------
 # -------------------- CSS --------------------
 st.markdown(
@@ -107,17 +101,15 @@ pg = st.navigation(
 
 # -------------------- Sidebar --------------------
 with st.sidebar:
-    st.markdown(
-        '<div class="sidebar-title">🚀 프로젝트 이름</div>', unsafe_allow_html=True
-    )
-
+    st.title("🚗 차모아 (CarMoa)")
+    st.markdown("---")
     st.page_link("pages/home.py", label="Home", icon="🏠")
     st.page_link("pages/Chart.py", label="Chart", icon="📈")
     st.page_link("pages/search.py", label="Search", icon="🔍")
     st.page_link("pages/FAQ.py", label="FAQ", icon="❓")
-    st.page_link("pages/news.py", label="소식", icon="📰")
-    st.page_link("pages/service_center.py", label="Service Center", icon="🗺️")
-    st.page_link("pages/community.py", label="소통공간", icon="💬")
+    st.page_link("pages/news.py", label="News", icon="📰")
+    st.page_link("pages/service_center.py", label="Service_Center", icon="🗺️")
+    st.page_link("pages/community.py", label="Community", icon="💬")
 
     st.markdown("---")
 

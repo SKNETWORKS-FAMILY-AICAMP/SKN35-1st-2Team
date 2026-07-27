@@ -12,38 +12,127 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from db.refind_data import search_recall
 
 st.set_page_config(page_title="자동차 리콜 검색", layout="wide")
-st.title("🚗 자동차 리콜·결함 정보 검색")
+st.title("자동차 리콜·결함 정보 검색")
 
-st.subheader("🔎 조건 검색")
+st.subheader("조건 검색")
 
-col1, col2, col3 = st.columns([1, 1, 1.4])
+# ── st.form으로 감싸면 Enter 키 = 제출 버튼 클릭과 동일하게 동작 ──
+with st.form("search_form"):
+    col1, col2, col3, col4 = st.columns([1, 1, 1.4, 0.5])
 
-with col1:
-    manufacturer_list = ["전체","벤츠","비엠더블유","폭스바겐","현대자동차","기아"]
-    manufacturer = st.selectbox("기업(브랜드)", manufacturer_list)
+    with col1:
+        manufacturer_list = ["전체", "벤츠", "BMW", "폭스바겐", "현대", "기아"]
+        manufacturer = st.selectbox("기업(브랜드)", manufacturer_list)
 
-with col2:
-    model = st.text_input("차종", placeholder="검색")
+    with col2:
+        model = st.text_input("차종", placeholder="검색")
 
-with col3:
-    keyword = st.text_input("결함 키워드", placeholder="예: 브레이크, 엔진, 에어백")
+    with col3:
+        keyword = st.text_input("결함 키워드", placeholder="예: 브레이크, 엔진, 에어백")
 
-search_clicked = st.button("🔍 검색", use_container_width=True, type="primary")
+    with col4:
+        st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
+        search_clicked = st.form_submit_button("검색", use_container_width=True, type="primary")
 
-# 버튼 눌렸을때 처리
+# 버튼(또는 Enter) 눌렸을 때 검색 실행 후 session_state에 저장
 if search_clicked:
-    # 위에서 받은 인자들을 함수에 넣어서 보내기
-    df = search_recall(manufacturer=manufacturer, model=model, keyword=keyword)
+    with st.spinner("검색 중..."):
+        try:
+            df = search_recall(
+                manufacturer=manufacturer,
+                model=model.strip(),
+                keyword=keyword.strip(),
+            )
+            st.session_state["search_result"] = df
+            st.session_state["search_error"] = None
+            st.session_state["search_condition"] = {
+                "manufacturer": manufacturer,
+                "model": model.strip(),
+                "keyword": keyword.strip(),
+            }
+        except Exception as e:
+            st.session_state["search_result"] = None
+            st.session_state["search_error"] = str(e)
+
+# session_state에 결과가 있으면 항상 표시 (다른 위젯 조작해도 결과 유지)
+if st.session_state.get("search_error"):
+    st.divider()
+    st.error(f"검색 중 오류가 발생했습니다: {st.session_state['search_error']}")
+
+elif st.session_state.get("search_result") is not None:
+    df = st.session_state["search_result"]
+    cond = st.session_state.get("search_condition", {})
 
     st.divider()
-    st.subheader("📋 검색 결과")
+
+    st.caption(
+        f"검색 조건 — 브랜드: **{cond.get('manufacturer', '-')}** · "
+        f"차종: **{cond.get('model') or '전체'}** · "
+        f"키워드: **{cond.get('keyword') or '전체'}**"
+    )
+
+    st.subheader(f"검색 결과 ({len(df)}건)")
 
     if df.empty:
         st.warning("검색 결과가 없습니다.")
     else:
-        st.dataframe(df, use_container_width=True)
+        # ── 리콜대수 컬럼에 천 단위 콤마 적용 ──
+        df_display = df.copy()
+        if "리콜대수" in df_display.columns:
+            df_display["리콜대수"] = df_display["리콜대수"].apply(
+                lambda x: f"{int(x):,}" if pd.notna(x) else "-"
+            )
 
-    st.divider()
+        # ── st.dataframe은 긴 텍스트(리콜사유)를 더블클릭해야 전체가 보여서
+        #     가로 스크롤 되는 HTML 테이블로 대체 ──
+        table_html = df_display.to_html(index=False, escape=False)
+        st.markdown(
+            f"""
+            <div style="overflow-x:auto; border:1px solid #ddd; border-radius:10px; background:#ffffff;">
+                <style>
+                    .pretty-table table {{
+                        border-collapse: collapse;
+                        white-space: nowrap;
+                        width: max-content;
+                        min-width: 100%;
+                        background: #ffffff;
+                        color: #1a1a1a;
+                    }}
+                    .pretty-table th, .pretty-table td {{
+                        padding: 10px 14px;
+                        border-bottom: 1px solid #e5e5e5;
+                        text-align: left;
+                        font-size: 14px;
+                        color: #1a1a1a;
+                    }}
+                    .pretty-table th {{
+                        position: sticky;
+                        top: 0;
+                        background: #f2f2f2;
+                        color: #1a1a1a;
+                        font-weight: 600;
+                    }}
+                    .pretty-table tr:nth-child(even) {{
+                        background: #fafafa;
+                    }}
+                    .pretty-table tr:hover {{
+                        background: #eef2ff;
+                    }}
+                </style>
+                <div class="pretty-table">
+                    {table_html}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.download_button(
+            label="⬇ CSV로 다운로드",
+            data=df.to_csv(index=False).encode("utf-8-sig"),
+            file_name="recall_search_result.csv",
+            mime="text/csv",
+        )
 
 # ================================================================================================================
 # src/db/refind_data.py 에서 search_recall 함수를 좀 더 건들고 너 원하는 결과 나올 수 있도록 하면 될 거 같어

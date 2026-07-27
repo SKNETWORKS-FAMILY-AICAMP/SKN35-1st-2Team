@@ -87,11 +87,11 @@ page2 = st.Page("pages/search.py", title="Search", icon="🔍")
 
 page3 = st.Page("pages/FAQ.py", title="FAQ", icon="❓")
 
-page4 = st.Page("pages/news.py", title="소식", icon="📰")
+page4 = st.Page("pages/news.py", title="News", icon="📰")
 
 page5 = st.Page("pages/service_center.py", title="서비스 센터", icon="🗺️")
 
-page6 = st.Page("pages/community.py", title="소통공간", icon="💬")
+page6 = st.Page("pages/community.py", title="Community", icon="💬")
 
 page7 = st.Page("pages/create_page.py", title="글작성")
 
@@ -111,9 +111,9 @@ with st.sidebar:
     st.page_link("pages/Chart.py", label="Chart", icon="📈")
     st.page_link("pages/search.py", label="Search", icon="🔍")
     st.page_link("pages/FAQ.py", label="FAQ", icon="❓")
-    st.page_link("pages/news.py", label="소식", icon="📰")
+    st.page_link("pages/news.py", label="News")
     st.page_link("pages/service_center.py", label="서비스 센터", icon="🗺️")
-    st.page_link("pages/community.py", label="소통공간", icon="💬")
+    st.page_link("pages/community.py", label="Community")
 
     st.markdown("---")
 

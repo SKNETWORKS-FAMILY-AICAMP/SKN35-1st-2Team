@@ -26,6 +26,22 @@ from db.db_utils import (
 POSTS_PER_PAGE = 10
 PAGE_BLOCK_SIZE = 5
 
+# 브랜드 컬러 시스템
+BRAND_COLORS = {
+    "현대": {"main": "#00AAD2", "dark": "#00728C"},
+    "기아": {"main": "#BB162B", "dark": "#8C0F20"},
+    "벤츠": {"main": "#1A1A1A", "dark": "#000000"},
+    "BMW": {"main": "#0066B1", "dark": "#003D6B"},
+    "폭스바겐": {"main": "#001E50", "dark": "#000E28"},
+}
+DEFAULT_BRAND_COLOR = {"main": "#1c7ed6", "dark": "#1864ab"}
+
+
+def hex_to_rgba(hex_color: str, alpha: float) -> str:
+    hex_color = hex_color.lstrip("#")
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {alpha})"
+
 
 def highlight_text(text: str, keyword: str) -> str:
     """텍스트 내 검색어를 대소문자 구분 없이 노란색 형광펜 하이라이트 HTML 태그로 반환하는 유틸리티 함수"""
@@ -40,11 +56,11 @@ def highlight_text(text: str, keyword: str) -> str:
 
 
 # 3. Streamlit 페이지 기본 레이아웃 설정
-st.set_page_config(page_title="소통공간", page_icon="💬", layout="wide")
+st.set_page_config(page_title="Community", layout="wide")
 
 
 # 상단 타이틀 및 가이드 텍스트
-st.title("💬 소통공간")
+st.title("Community")
 st.write("차량 리콜 경험, 정보, 대응 방법 등을 자유롭게 공유해 주세요.")
 
 # 4. 검색 필터 유지용 세션 상태(st.session_state) 초기화 (다른 페이지 방문 후 복귀 시 검색 조건 보존)
@@ -95,8 +111,8 @@ target_idx = target_options.index(st.session_state["saved_target"]) if st.sessio
 sort_options = ["최신순", "조회순", "공감순"]
 sort_idx = sort_options.index(st.session_state["saved_sort"]) if st.session_state["saved_sort"] in sort_options else 0
 
-# 필터 5개 컬럼 레이아웃 생성
-col1, col2, col3, col4, col5 = st.columns([1, 1, 1.1, 2, 0.8])
+# 필터 및 검색/초기화 버튼 통합 7컬럼 레이아웃 생성
+col1, col2, col3, col4, col5, col6, col7 = st.columns([1.0, 1.1, 1.0, 2.0, 0.9, 0.75, 0.75])
 with col1:
     st.selectbox("브랜드", brand_options, index=brand_idx, key="list_brand", on_change=sync_search_filters)
 with col2:
@@ -107,15 +123,14 @@ with col4:
     st.text_input("검색어", value=st.session_state["saved_keyword"], placeholder="검색어를 입력하세요", key="list_keyword", on_change=sync_search_filters)
 with col5:
     st.selectbox("정렬", sort_options, index=sort_idx, key="list_sort", on_change=sync_search_filters)
-
-# 초기화 및 검색 실행 버튼
-_, btn_col1, btn_col2 = st.columns([4, 1, 1])
-with btn_col1:
-    st.button("초기화", use_container_width=True, on_click=reset_filters)
-with btn_col2:
+with col6:
+    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
     if st.button("🔍 검색", type="primary", use_container_width=True):
         sync_search_filters()
         st.rerun()
+with col7:
+    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+    st.button("초기화", use_container_width=True, on_click=reset_filters)
 
 
 # 6. 현재 검색 필터 값을 변수에 할당
@@ -153,7 +168,7 @@ with write_col:
         st.switch_page("pages/create_page.py")
 
 
-# 10. 커스텀 CSS 스타일링: 제목 버튼을 일반 텍스트 링크처럼 보이도록 기본 버튼 스타일 오버라이딩
+# 10. 커스텀 CSS 스타일링: 제목 버튼 및 페이징 버튼 줄바꿈 방지
 st.markdown(
     """
     <style>
@@ -167,14 +182,22 @@ st.markdown(
         border-radius: 0 !important;
         padding: 0 !important;
         margin: 4px 0 !important;
-        font-size: 26px !important;
-        font-weight: 800 !important;
-        color: #111827 !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        color: var(--text-color, inherit) !important;
         text-align: left !important;
         box-shadow: none !important;
         outline: none !important;
         line-height: 1.4 !important;
         cursor: pointer !important;
+    }
+    @media (prefers-color-scheme: dark) {
+        div[class*="st-key-title_"] button,
+        div[class*="st-key-title_"] button *,
+        div[class*="st-key-title_"] button p,
+        div[class*="st-key-title_"] button span {
+            color: #ffffff !important;
+        }
     }
     div[class*="st-key-title_"] button:hover,
     div[class*="st-key-title_"] button:hover *,
@@ -187,6 +210,11 @@ st.markdown(
         border: none !important;
         box-shadow: none !important;
         outline: none !important;
+    }
+    /* 페이징 버튼 줄바꿈 방지 */
+    div[data-testid="stHorizontalBlock"] button {
+        white-space: nowrap !important;
+        word-break: keep-all !important;
     }
     </style>
     """,
@@ -203,10 +231,15 @@ else:
         with st.container(border=True):
             top_l, top_r = st.columns([4, 1.8])
             with top_l:
-                # 11-1. 브랜드 및 카테고리 HTML 태그 뱃지 표시
-                brand_badge = f'<span style="background-color: #e7f5ff; color: #1c7ed6; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-right: 6px;">{post["brand"] or "기타"}</span>'
+                # 11-1. 브랜드 및 카테고리 HTML 태그 뱃지 표시 (브랜드 고유 컬러 시스템 및 좌측 border-left 액센트 적용)
+                b_info = BRAND_COLORS.get(post["brand"], DEFAULT_BRAND_COLOR)
+                b_main = b_info["main"]
+                b_bg = hex_to_rgba(b_main, 0.12)
+                b_border = hex_to_rgba(b_main, 0.25)
+                accent_bar = f'<div style="border-left: 4px solid {b_main}; padding-left: 10px; margin-bottom: 4px;">'
+                brand_badge = f'<span style="background-color: {b_bg}; color: {b_main}; border: 1px solid {b_border}; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700; margin-right: 6px;">{post["brand"] or "기타"}</span>'
                 cat_badge = f'<span style="background-color: #f1f3f5; color: #495057; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600;">{post["category"] or "기타"}</span>'
-                st.markdown(f"{brand_badge}{cat_badge}", unsafe_allow_html=True)
+                st.markdown(f"{accent_bar}{brand_badge}{cat_badge}</div>", unsafe_allow_html=True)
             with top_r:
                 # 11-2. 우측 상단 메타 통계 정보 (조회수, 좋아요/공감수, 댓글수)
                 views_count = post.get("views") or 0
@@ -227,51 +260,82 @@ else:
             st.caption(f"{model_txt}작성자: {post['author'] or '익명'}  |  {post['created_at']}")
 
 
-# 12. 하단 5-Block 네비게이션 페이징 바 컨트롤러
+# 12. 하단 동적 페이징 인디케이터 (버튼 텍스트 잘림 방지 및 비례 컬럼 가로배치)
+st.markdown(
+    """
+    <style>
+    div[class*="st-key-cpage_"] button,
+    div[class*="st-key-cpage_"] button *,
+    div[class*="st-key-cpage_"] button p {
+        font-size: 13px !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        overflow: visible !important;
+    }
+    /* 처음, 이전, 다음, 마지막 이동 버튼 크기 축소 */
+    div[class*="st-key-cpage_first"] button,
+    div[class*="st-key-cpage_prev"] button,
+    div[class*="st-key-cpage_next"] button,
+    div[class*="st-key-cpage_last"] button,
+    div[class*="st-key-cpage_first"] button *,
+    div[class*="st-key-cpage_prev"] button *,
+    div[class*="st-key-cpage_next"] button *,
+    div[class*="st-key-cpage_last"] button * {
+        font-size: 11.5px !important;
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.divider()
 
-# 5개 단위 고정 블록 페이지 번호 범위 계산 (1~5, 6~10 등)
 block_start = ((current_page - 1) // PAGE_BLOCK_SIZE) * PAGE_BLOCK_SIZE + 1
 block_end = block_start + PAGE_BLOCK_SIZE - 1
+valid_pages = list(range(block_start, min(block_end, total_pages) + 1))
 
-# 중앙 영역 5개 네비게이션 버튼 배치 (처음, 이전, 1~5 숫자 번호, 다음, 마지막)
-_, center_box, _ = st.columns([0.8, 2.8, 0.8])
+def go_community_page(p):
+    st.session_state["community_page"] = p
+
+_, center_box, _ = st.columns([0.6, 2.8, 0.6])
 with center_box:
-    c_first, c_prev, c_nums, c_next, c_last = st.columns([1, 1, 3.2, 1, 1])
-    
+    # 축소된 네비게이션 버튼 0.95 비율, 숫자 버튼 0.8 비율
+    col_weights = [0.95, 0.95] + [0.8] * len(valid_pages) + [0.95, 0.95]
+    p_cols = st.columns(col_weights)
+
     # 12-1. 첫 페이지 이동 버튼
-    with c_first:
-        if st.button("« 처음", disabled=(current_page <= 1), use_container_width=True, help="첫 페이지로 이동"):
-            st.session_state["community_page"] = 1
+    with p_cols[0]:
+        if st.button("« 처음", key="cpage_first", disabled=(current_page <= 1), use_container_width=True, help="첫 페이지로 이동"):
+            go_community_page(1)
             st.rerun()
 
     # 12-2. 이전 페이지 이동 버튼
-    with c_prev:
-        if st.button("◀ 이전", disabled=(current_page <= 1), use_container_width=True, help="이전 페이지로 이동"):
-            st.session_state["community_page"] = current_page - 1
+    with p_cols[1]:
+        if st.button("◀ 이전", key="cpage_prev", disabled=(current_page <= 1), use_container_width=True, help="이전 페이지로 이동"):
+            go_community_page(max(1, current_page - 1))
             st.rerun()
 
-    # 12-3. 5개 고정 번호 버튼 생성
-    with c_nums:
-        block_pages = list(range(block_start, block_end + 1))
-        page_cols = st.columns(5)
-        for idx, p_num in enumerate(block_pages):
-            with page_cols[idx]:
-                p_type = "primary" if p_num == current_page else "secondary"
-                is_disabled = (p_num > total_pages)  # 전체 페이지 수 초과 시 비활성화
-                if st.button(str(p_num), key=f"page_num_{p_num}", type=p_type, disabled=is_disabled, use_container_width=True):
-                    st.session_state["community_page"] = p_num
-                    st.rerun()
+    # 12-3. 데이터가 존재하는 유효한 페이지 번호 버튼만 표시
+    for idx, p_num in enumerate(valid_pages):
+        with p_cols[2 + idx]:
+            p_type = "primary" if p_num == current_page else "secondary"
+            if st.button(str(p_num), key=f"cpage_btn_{p_num}", type=p_type, use_container_width=True):
+                go_community_page(p_num)
+                st.rerun()
 
     # 12-4. 다음 페이지 이동 버튼
-    with c_next:
-        if st.button("다음 ▶", disabled=(current_page >= total_pages), use_container_width=True, help="다음 페이지로 이동"):
-            st.session_state["community_page"] = current_page + 1
+    with p_cols[2 + len(valid_pages)]:
+        if st.button("다음 ▶", key="cpage_next", disabled=(current_page >= total_pages), use_container_width=True, help="다음 페이지로 이동"):
+            go_community_page(min(total_pages, current_page + 1))
             st.rerun()
 
     # 12-5. 마지막 페이지 이동 버튼
-    with c_last:
-        if st.button("마지막 »", disabled=(current_page >= total_pages), use_container_width=True, help="마지막 페이지로 이동"):
-            st.session_state["community_page"] = total_pages
+    with p_cols[3 + len(valid_pages)]:
+        if st.button("마지막 »", key="cpage_last", disabled=(current_page >= total_pages), use_container_width=True, help="마지막 페이지로 이동"):
+            go_community_page(total_pages)
             st.rerun()
 

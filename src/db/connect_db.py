@@ -53,7 +53,7 @@ def seed_data():
     )
     print(f"{len(df)}건 적재 완료")
 
-def seed_data2():
+def seed_faq_data2():
     """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
     df = pd.read_csv(DATA_PATH2)
     engine = get_engine()
@@ -67,7 +67,7 @@ def seed_data2():
     )
     print(f"{len(df)}건 적재 완료")
 
-def seed_data3():
+def seed_news_data3():
     """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
     df = pd.read_csv(DATA_PATH3)
     engine = get_engine()
@@ -83,5 +83,5 @@ def seed_data3():
 
 if __name__ == "__main__":
     seed_data()
-    seed_data2()
-    seed_data3()
+    seed_faq_data2()
+    seed_news_data3()

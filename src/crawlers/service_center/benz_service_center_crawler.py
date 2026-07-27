@@ -16,7 +16,7 @@ DETAIL_API = "https://api.oneweb.mercedes-benz.com/dms-plus/v3/api/dealers/id"
 HEADERS = {"x-apikey": "ce7d9916-6a3d-407a-b086-fea4cbae05f6"}
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 SAVE_PATH = ROOT / "crawled" / "benz_service_centers.csv"
 
@@ -169,19 +169,43 @@ def get_service_phone(data):
 
 
 def clean_name(name):
+    """
+    벤츠 서비스센터 이름 정제
+    """
 
     if not name:
         return None
 
-    return (
+    # 전시장 / 서비스센터 형태 처리
+    if "/" in name:
+        parts = [part.strip() for part in name.split("/")]
+
+        for part in parts:
+            if "서비스센터" in part:
+                name = part
+                break
+
+    name = (
         name.replace("전시장 & ", "")
-        .replace("전시장 / ", "")
         .replace("전시장", "")
         .replace("SR & SC", "서비스센터")
         .replace(" SR", "")
         .replace(" SC", " 서비스센터")
         .strip()
     )
+
+    # 같은 단어 반복 제거
+    words = name.split()
+
+    result = []
+
+    for word in words:
+        if result and result[-1] == word:
+            continue
+
+        result.append(word)
+
+    return " ".join(result)
 
 
 def get_service_name(data):

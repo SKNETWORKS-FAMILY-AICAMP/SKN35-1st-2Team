@@ -16,7 +16,6 @@ st.title("자동차 리콜·결함 정보 검색")
 
 st.subheader("조건 검색")
 
-# ── st.form으로 감싸면 Enter 키 = 제출 버튼 클릭과 동일하게 동작 ──
 with st.form("search_form"):
     col1, col2, col3, col4 = st.columns([1, 1, 1.4, 0.5])
 
@@ -34,7 +33,6 @@ with st.form("search_form"):
         st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
         search_clicked = st.form_submit_button("검색", use_container_width=True, type="primary")
 
-# 버튼(또는 Enter) 눌렸을 때 검색 실행 후 session_state에 저장
 if search_clicked:
     with st.spinner("검색 중..."):
         try:
@@ -54,7 +52,6 @@ if search_clicked:
             st.session_state["search_result"] = None
             st.session_state["search_error"] = str(e)
 
-# session_state에 결과가 있으면 항상 표시 (다른 위젯 조작해도 결과 유지)
 if st.session_state.get("search_error"):
     st.divider()
     st.error(f"검색 중 오류가 발생했습니다: {st.session_state['search_error']}")
@@ -71,61 +68,205 @@ elif st.session_state.get("search_result") is not None:
         f"키워드: **{cond.get('keyword') or '전체'}**"
     )
 
-    st.subheader(f"검색 결과 ({len(df)}건)")
-
     if df.empty:
+        st.subheader("검색 결과 (0건)")
         st.warning("검색 결과가 없습니다.")
     else:
-        # ── 리콜대수 컬럼에 천 단위 콤마 적용 ──
-        df_display = df.copy()
-        if "리콜대수" in df_display.columns:
-            df_display["리콜대수"] = df_display["리콜대수"].apply(
-                lambda x: f"{int(x):,}" if pd.notna(x) else "-"
-            )
+        # ── 공통 스타일 (요약 카드 + 리콜 카드) — 카드 크기와 글자 크기 비율 맞춤 ──
+        st.markdown(
+            """
+            <style>
+                .stat-row {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 14px;
+                    margin: 8px 0 24px 0;
+                }
+                .stat-card {
+                    background: #ffffff;
+                    border: 1px solid #ececec;
+                    border-radius: 12px;
+                    padding: 14px 18px;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+                }
+                .stat-label {
+                    font-size: 13px;
+                    color: #8a8a8a;
+                    margin-bottom: 6px;
+                }
+                .stat-value {
+                    font-size: 24px;
+                    font-weight: 800;
+                    color: #1a1a1a;
+                    line-height: 1.2;
+                }
+                .stat-sub {
+                    font-size: 11.5px;
+                    color: #4a9d5f;
+                    background: #eaf7ee;
+                    display: inline-block;
+                    padding: 2px 8px;
+                    border-radius: 999px;
+                    margin-top: 6px;
+                }
+                .recall-card {
+                    position: relative;
+                    background: #ffffff;
+                    border: 1px solid #ececec;
+                    border-left: 5px solid var(--brand-color, #999);
+                    border-radius: 12px;
+                    padding: 16px 20px;
+                    margin-bottom: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                }
+                .recall-card-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 12px;
+                }
+                .recall-title-wrap {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .recall-title {
+                    font-size: 17px;
+                    font-weight: 700;
+                    color: #1a1a1a;
+                }
+                .brand-badge {
+                    display: inline-block;
+                    background: var(--brand-color, #999);
+                    color: #ffffff;
+                    font-size: 12px;
+                    font-weight: 700;
+                    padding: 3px 10px;
+                    border-radius: 999px;
+                }
+                .recall-count-badge {
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #d9534f;
+                    background: #fdecea;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                }
+                .recall-info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                    margin-bottom: 12px;
+                }
+                .recall-info-item .label {
+                    font-size: 11.5px;
+                    color: #999999;
+                    margin-bottom: 2px;
+                }
+                .recall-info-item .value {
+                    font-size: 13.5px;
+                    font-weight: 600;
+                    color: #1a1a1a;
+                }
+                .recall-reason-box {
+                    background: #f8f9fb;
+                    border-radius: 8px;
+                    padding: 10px 14px;
+                    display: flex;
+                    gap: 8px;
+                }
+                .recall-reason-icon {
+                    font-size: 14px;
+                }
+                .recall-reason-text {
+                    font-size: 13px;
+                    line-height: 1.6;
+                    color: #444444;
+                }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
-        # ── st.dataframe은 긴 텍스트(리콜사유)를 더블클릭해야 전체가 보여서
-        #     가로 스크롤 되는 HTML 테이블로 대체 ──
-        table_html = df_display.to_html(index=False, escape=False)
+        # ── 브랜드별 포인트 컬러 ──
+        brand_colors = {
+            "현대": "#0072ce",
+            "기아": "#bb162b",
+            "벤츠": "#5a5a5a",
+            "BMW": "#1c3f94",
+            "폭스바겐": "#00437a",
+        }
+
+        # ── 상단 요약 통계 카드 (홈 화면 스타일) ──
+        total_count = len(df)
+        total_recall_qty = int(df["리콜대수"].sum()) if "리콜대수" in df.columns else 0
+        brand_count = df["제작자"].nunique() if "제작자" in df.columns else 0
+        latest_date = df["리콜개시일"].max() if "리콜개시일" in df.columns else "-"
+
         st.markdown(
             f"""
-            <div style="overflow-x:auto; border:1px solid #ddd; border-radius:10px; background:#ffffff;">
-                <style>
-                    .pretty-table table {{
-                        border-collapse: collapse;
-                        white-space: nowrap;
-                        width: max-content;
-                        min-width: 100%;
-                        background: #ffffff;
-                        color: #1a1a1a;
-                    }}
-                    .pretty-table th, .pretty-table td {{
-                        padding: 10px 14px;
-                        border-bottom: 1px solid #e5e5e5;
-                        text-align: left;
-                        font-size: 14px;
-                        color: #1a1a1a;
-                    }}
-                    .pretty-table th {{
-                        position: sticky;
-                        top: 0;
-                        background: #f2f2f2;
-                        color: #1a1a1a;
-                        font-weight: 600;
-                    }}
-                    .pretty-table tr:nth-child(even) {{
-                        background: #fafafa;
-                    }}
-                    .pretty-table tr:hover {{
-                        background: #eef2ff;
-                    }}
-                </style>
-                <div class="pretty-table">
-                    {table_html}
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-label">검색된 리콜 건수</div>
+                    <div class="stat-value">{total_count}건</div>
+                    <div class="stat-sub">🔎 조건 일치</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">총 리콜 대상 차량</div>
+                    <div class="stat-value">{total_recall_qty:,}대</div>
+                    <div class="stat-sub">📊 합계</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">관련 브랜드 수</div>
+                    <div class="stat-value">{brand_count}개</div>
+                    <div class="stat-sub">🏷️ 브랜드</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">가장 최근 리콜일</div>
+                    <div class="stat-value" style="font-size:20px;">{latest_date}</div>
+                    <div class="stat-sub">🕒 최신순</div>
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
+
+        st.markdown(f"#### 📋 상세 리콜 목록 ({total_count}건)")
+
+        for _, row in df.iterrows():
+            brand = row.get("제작자", "-")
+            color = brand_colors.get(brand, "#7c7c7c")
+            recall_count_display = (
+                f"{int(row['리콜대수']):,}대" if pd.notna(row.get("리콜대수")) else "-"
+            )
+            st.markdown(
+                f"""
+                <div class="recall-card" style="--brand-color: {color};">
+                    <div class="recall-card-header">
+                        <div class="recall-title-wrap">
+                            <span class="brand-badge">{brand}</span>
+                            <span class="recall-title">{row.get('차명', '-')}</span>
+                        </div>
+                        <div class="recall-count-badge">🚗 {recall_count_display}</div>
+                    </div>
+                    <div class="recall-info-grid">
+                        <div class="recall-info-item">
+                            <div class="label">생산기간</div>
+                            <div class="value">{row.get('생산기간_부터', '-')} ~ {row.get('생산기간_까지', '-')}</div>
+                        </div>
+                        <div class="recall-info-item">
+                            <div class="label">리콜 개시일</div>
+                            <div class="value">{row.get('리콜개시일', '-')}</div>
+                        </div>
+                    </div>
+                    <div class="recall-reason-box">
+                        <div class="recall-reason-icon">⚠️</div>
+                        <div class="recall-reason-text">{row.get('리콜사유', '-')}</div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         st.download_button(
             label="⬇ CSV로 다운로드",

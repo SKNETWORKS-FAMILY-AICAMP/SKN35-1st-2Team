@@ -17,6 +17,8 @@ SELECT database(); # database 확인
 
 SHOW tables;		# table 확인
 
+DROP TABLE car_recall;
+
 # 8650개 -- 사용할 데이터만 정제
 SELECT manufacturer, model_name FROM car_recall WHERE manufacturer IN('벤츠', '현대자동차', '기아', '비엠더블유', '폭스바겐그룹');
 

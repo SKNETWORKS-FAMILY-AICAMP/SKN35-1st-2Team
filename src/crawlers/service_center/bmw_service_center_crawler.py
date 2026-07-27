@@ -146,7 +146,6 @@ def crawl_bmw_page(driver):
                     "name": name,
                     "address": address,
                     "phone": phone,
-                    "company": "BMW",
                 }
             )
 
@@ -165,7 +164,6 @@ def parse_service_center(data):
         "name": data.get("name"),
         "address": data.get("address"),
         "phone": data.get("phone"),
-        "company": data.get("company"),
     }
 
 

@@ -31,29 +31,111 @@ def get_engine():
 
 
 def seed_data():
-    """CSV를 car_recall 테이블에 적재 (최초 1회만 직접 실행)"""
     df = pd.read_csv(DATA_PATH)
+
     engine = get_engine()
 
-    if "manufacturer" in df.columns:
-        df["manufacturer"] = (
-            df["manufacturer"]
-            .astype(str)
-            .str.strip()
-            .replace(MANUFACTURER_MAP)
-        )
+    # ==============================
+    # 제조사명 통일
+    # ==============================
+    df["manufacturer"] = (
+        df["manufacturer"]
+        .astype(str)
+        .str.strip()
+        .replace(MANUFACTURER_MAP)
+    )
 
-    df.to_sql(
-        name="car_recall",
-        con=engine,
+    # ==============================
+    # manufacturer 저장
+    # ==============================
+    manufacturer_df = (
+        df[["manufacturer"]]
+        .drop_duplicates()
+        .rename(columns={"manufacturer": "name"})
+    )
+
+    manufacturer_df.to_sql(
+        "manufacturer",
+        engine,
+        if_exists="append",
+        index=False
+    )
+
+    # ==============================
+    # manufacturer 조회
+    # ==============================
+    manufacturer = pd.read_sql(
+        "SELECT id, name FROM manufacturer",
+        engine
+    )
+
+    # manufacturer_id 추가
+    df = df.merge(
+        manufacturer,
+        left_on="manufacturer",
+        right_on="name"
+    )
+
+    df.rename(columns={"id": "manufacturer_id"}, inplace=True)
+
+    # ==============================
+    # car_model 저장
+    # ==============================
+    model_df = (
+        df[["manufacturer_id", "model_name"]]
+        .drop_duplicates()
+        .rename(columns={"model_name": "name"})
+    )
+
+    model_df.to_sql(
+        "car_model",
+        engine,
+        if_exists="append",
+        index=False
+    )
+
+    # ==============================
+    # car_model 조회
+    # ==============================
+    car_model = pd.read_sql(
+        "SELECT id, manufacturer_id, name FROM car_model",
+        engine
+    )
+
+    df = df.merge(
+        car_model,
+        left_on=["manufacturer_id", "model_name"],
+        right_on=["manufacturer_id", "name"]
+    )
+
+    df.rename(columns={"id": "car_model_id"}, inplace=True)
+
+    # ==============================
+    # car_recall 저장
+    # ==============================
+    recall_df = df[
+        [
+            "car_model_id",
+            "production_start",
+            "production_end",
+            "recall_start_date",
+            "recall_count",
+            "recall_reason",
+        ]
+    ]
+
+    recall_df.to_sql(
+        "car_recall",
+        engine,
         if_exists="append",
         index=False,
         method="multi",
         chunksize=1000,
     )
-    print(f"{len(df)}건 적재 완료")
 
-def seed_data2():
+    print(f"{len(recall_df)}건 적재 완료")
+
+def seed_faq_data2():
     """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
     df = pd.read_csv(DATA_PATH2)
     engine = get_engine()
@@ -67,8 +149,8 @@ def seed_data2():
     )
     print(f"{len(df)}건 적재 완료")
 
-def seed_data3():
-    """CSV를 뉴스 테이블에 적재 (최초 1회만 직접 실행)"""
+def seed_news_data3():
+    """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
     df = pd.read_csv(DATA_PATH3)
     engine = get_engine()
     df.to_sql(
@@ -84,5 +166,5 @@ def seed_data3():
 
 if __name__ == "__main__":
     seed_data()
-    seed_data2()
-    seed_data3()
+    seed_faq_data2()
+    seed_news_data3()

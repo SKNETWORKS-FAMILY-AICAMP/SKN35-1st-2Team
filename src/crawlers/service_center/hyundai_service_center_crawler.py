@@ -70,7 +70,6 @@ def parse_service_center(raw_data):
                 "phone": format_phone(item.get("repnTn")),
                 "latitude": item.get("mapLaeVal"),
                 "longitude": item.get("mapLoeVal"),
-                "company": "현대",
             }
         )
 

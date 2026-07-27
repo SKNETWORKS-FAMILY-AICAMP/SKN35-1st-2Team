@@ -8,19 +8,19 @@ from sqlalchemy import text
 from db.connect_db import get_engine
 
 # ============== 기업 목록 ==============
-def get_company_list() -> list:
+def get_company_list():
     engine = get_engine()
 
     query = text("""
-        SELECT DISTINCT manufacturer
-        FROM car_recall
-        ORDER BY manufacturer
+        SELECT name
+        FROM manufacturer
+        ORDER BY name
     """)
 
     with engine.connect() as conn:
         df = pd.read_sql(query, conn)
 
-    return df["manufacturer"].tolist()
+    return df["name"].tolist()
 
 # ========= 최소년도 & 최대년도 =========
 def get_year_range(companies):
@@ -29,17 +29,22 @@ def get_year_range(companies):
 
     engine = get_engine()
 
-    company_list = ",".join(f"'{c}'" for c in companies)
+    placeholders = ",".join(f":c{i}" for i in range(len(companies)))
 
-    sql = f"""
-    SELECT
-        MIN(YEAR(recall_start_date)) AS min_year,
-        MAX(YEAR(recall_start_date)) AS max_year
-    FROM car_recall
-    WHERE manufacturer IN ({company_list})
-    """
+    query = text(f"""
+        SELECT
+            MIN(YEAR(cr.recall_start_date)) AS min_year,
+            MAX(YEAR(cr.recall_start_date)) AS max_year
+        FROM car_recall cr
+        JOIN car_model cm ON cr.car_model_id = cm.id
+        JOIN manufacturer m ON cm.manufacturer_id = m.id
+        WHERE m.name IN ({placeholders})
+    """)
 
-    df = pd.read_sql(sql, engine)
+    params = {f"c{i}": company for i, company in enumerate(companies)}
+
+    with engine.connect() as conn:
+        df = pd.read_sql(query, conn, params=params)
 
     if df.empty or pd.isna(df.loc[0, "min_year"]):
         return None, None
@@ -47,17 +52,19 @@ def get_year_range(companies):
     return int(df.loc[0, "min_year"]), int(df.loc[0, "max_year"])
 
 # ============== 년도별 리콜건수 ==============
-def get_yearly_recall(company: str, start: int, end: int) -> pd.DataFrame:
+def get_yearly_recall(company, start, end):
     engine = get_engine()
 
     query = text("""
         SELECT
-            YEAR(recall_start_date) AS 년도,
+            YEAR(cr.recall_start_date) AS 년도,
             COUNT(*) AS 리콜건수
-        FROM car_recall
-        WHERE manufacturer LIKE :company
-          AND YEAR(recall_start_date) BETWEEN :start AND :end
-        GROUP BY YEAR(recall_start_date)
+        FROM car_recall cr
+        JOIN car_model cm ON cr.car_model_id = cm.id
+        JOIN manufacturer m ON cm.manufacturer_id = m.id
+        WHERE m.name = :company
+          AND YEAR(cr.recall_start_date) BETWEEN :start AND :end
+        GROUP BY YEAR(cr.recall_start_date)
         ORDER BY 년도
     """)
 
@@ -66,7 +73,7 @@ def get_yearly_recall(company: str, start: int, end: int) -> pd.DataFrame:
             query,
             conn,
             params={
-                "company": f"%{company}%",
+                "company": company,
                 "start": start,
                 "end": end
             }
@@ -74,19 +81,20 @@ def get_yearly_recall(company: str, start: int, end: int) -> pd.DataFrame:
 
     return df.set_index("년도")
 
-
 # ============== 차종별 리콜건수 ==============
-def get_car_model_recall(company: str, start: int, end: int) -> pd.DataFrame:
+def get_car_model_recall(company, start, end):
     engine = get_engine()
 
     query = text("""
         SELECT
-            model_name AS 차명,
+            cm.name AS 차명,
             COUNT(*) AS 리콜건수
-        FROM car_recall
-        WHERE manufacturer LIKE :company
-          AND YEAR(recall_start_date) BETWEEN :start AND :end
-        GROUP BY model_name
+        FROM car_recall cr
+        JOIN car_model cm ON cr.car_model_id = cm.id
+        JOIN manufacturer m ON cm.manufacturer_id = m.id
+        WHERE m.name = :company
+          AND YEAR(cr.recall_start_date) BETWEEN :start AND :end
+        GROUP BY cm.name
         ORDER BY 리콜건수 DESC
     """)
 
@@ -95,7 +103,7 @@ def get_car_model_recall(company: str, start: int, end: int) -> pd.DataFrame:
             query,
             conn,
             params={
-                "company": f"%{company}%",
+                "company": company,
                 "start": start,
                 "end": end
             }
@@ -103,38 +111,33 @@ def get_car_model_recall(company: str, start: int, end: int) -> pd.DataFrame:
 
     return df.set_index("차명")
 
-
 # ============== 최근 3년 리콜건수 추세 ==============
-def get_risk_trend(company: str) -> pd.DataFrame:
+def get_risk_trend(company):
     engine = get_engine()
 
     query = text("""
         SELECT
-            YEAR(recall_start_date) AS 년도,
+            DATE_FORMAT(cr.recall_start_date, '%Y-%m') AS 연월,
             COUNT(*) AS 리콜건수
-        FROM car_recall
-        WHERE manufacturer LIKE :company
-          AND YEAR(recall_start_date) >= YEAR(CURDATE()) - 3
-        GROUP BY YEAR(recall_start_date)
-        ORDER BY 년도
+        FROM car_recall cr
+        JOIN car_model cm ON cr.car_model_id = cm.id
+        JOIN manufacturer m ON cm.manufacturer_id = m.id
+        WHERE m.name = :company
+          AND cr.recall_start_date >= DATE_SUB(
+                (SELECT MAX(recall_start_date) FROM car_recall),
+                INTERVAL 2 YEAR
+          )
+        GROUP BY DATE_FORMAT(cr.recall_start_date, '%Y-%m')
+        ORDER BY DATE_FORMAT(cr.recall_start_date, '%Y-%m')
     """)
 
     with engine.connect() as conn:
-        df = pd.read_sql(
-            query,
-            conn,
-            params={
-                "company": f"%{company}%"
-            }
-        )
+        df = pd.read_sql(query, conn, params={"company": company})
 
-    return df.set_index("년도")
+    return df.set_index("연월")
 
 # ============== 타이틀 용도 (증가량, 대수) ==============
-def get_latest_trend() -> pd.DataFrame:
-    """
-    최근 2년간 전체 리콜 현황
-    """
+def get_latest_trend():
     engine = get_engine()
 
     query = text("""
@@ -162,17 +165,19 @@ def get_recent_recalls(limit=3):
 
     query = text("""
         SELECT
-        manufacturer AS 제조사,
-        model_name AS 차명,
-        CASE
-            WHEN CHAR_LENGTH(recall_reason) > 20
-                THEN CONCAT(LEFT(recall_reason, 20), '...')
-            ELSE recall_reason
-        END AS 리콜사유
-        FROM car_recall
+            m.name AS 제조사,
+            cm.name AS 차명,
+            CASE
+                WHEN CHAR_LENGTH(cr.recall_reason) > 20
+                    THEN CONCAT(LEFT(cr.recall_reason, 20), '...')
+                ELSE cr.recall_reason
+            END AS 리콜사유
+        FROM car_recall cr
+        JOIN car_model cm ON cr.car_model_id = cm.id
+        JOIN manufacturer m ON cm.manufacturer_id = m.id
         ORDER BY RAND()
         LIMIT :limit
-        """)
+    """)
 
     with engine.connect() as conn:
         df = pd.read_sql(
@@ -183,38 +188,65 @@ def get_recent_recalls(limit=3):
 
     return df
 
+# =========== 뉴스 가져오기 ===========
+def get_news(limit=3):
+    engine = get_engine()
+
+    query = text("""
+        SELECT
+            title,
+            source,
+            published_at AS date
+        FROM news
+        ORDER BY RAND()
+        LIMIT :limit
+    """)
+
+    with engine.connect() as conn:
+        df = pd.read_sql(
+            query,
+            conn,
+            params={"limit": limit}
+        )
+
+    return df.to_dict("records")
+
 # ============== 검색 ==============
 def search_recall(manufacturer=None, model=None, keyword=None):
     engine = get_engine()
 
     sql = """
     SELECT
-        manufacturer AS 제작자,
-        model_name AS 차명,
-        production_start AS 생산기간_부터,
-        production_end AS 생산기간_까지,
-        recall_start_date AS 리콜개시일,
-        recall_count AS 리콜대수,
-        recall_reason AS 리콜사유
-    FROM car_recall
+        m.name AS 제작자,
+        cm.name AS 차명,
+        cr.production_start AS 생산기간_부터,
+        cr.production_end AS 생산기간_까지,
+        cr.recall_start_date AS 리콜개시일,
+        cr.recall_count AS 리콜대수,
+        cr.recall_reason AS 리콜사유
+    FROM car_recall cr
+    JOIN car_model cm
+        ON cr.car_model_id = cm.id
+    JOIN manufacturer m
+        ON cm.manufacturer_id = m.id
     WHERE 1=1
     """
 
     params = {}
 
     if manufacturer and manufacturer != "전체":
-        sql += " AND manufacturer LIKE :manufacturer"
+        sql += " AND m.name LIKE :manufacturer"
         params["manufacturer"] = f"%{manufacturer}%"
 
     if model:
-        sql += " AND model_name LIKE :model"
+        sql += " AND cm.name LIKE :model"
         params["model"] = f"%{model}%"
 
     if keyword:
-        sql += " AND recall_reason LIKE :keyword"
+        sql += " AND cr.recall_reason LIKE :keyword"
         params["keyword"] = f"%{keyword}%"
 
-    sql += " ORDER BY recall_start_date DESC"
+    sql += " ORDER BY cr.recall_start_date DESC"
 
     with engine.connect() as conn:
         return pd.read_sql(text(sql), conn, params=params)

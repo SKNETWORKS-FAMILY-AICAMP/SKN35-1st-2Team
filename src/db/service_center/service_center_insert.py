@@ -1,11 +1,9 @@
-# crawling 해온 데이터(csv 파일)을 service_center 테이블에 저장
-
 import os
 from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 load_dotenv()
 
@@ -51,8 +49,34 @@ def fix_coordinates(df):
     return df
 
 
+def get_manufacturer_id(engine, manufacturer_name):
+    """
+    제조사 이름으로 manufacturer.id 조회
+    """
+
+    with engine.connect() as conn:
+        manufacturer_id = conn.execute(
+            text(
+                """
+                SELECT id
+                FROM manufacturer
+                WHERE name = :name
+                """
+            ),
+            {"name": manufacturer_name},
+        ).scalar()
+
+    if manufacturer_id is None:
+        raise ValueError(
+            f"manufacturer 테이블에 '{manufacturer_name}' 데이터가 없습니다."
+        )
+
+    return manufacturer_id
+
+
 def insert_service_center(
     csv_path,
+    manufacturer_name,
     table_name="service_center",
 ):
     """
@@ -62,6 +86,9 @@ def insert_service_center(
     ----------
     csv_path:
         CSV 파일 경로
+
+    manufacturer_name:
+        manufacturer 테이블에서 조회할 제조사명
 
     table_name:
         저장할 테이블명
@@ -80,7 +107,14 @@ def insert_service_center(
 
     engine = get_db_engine()
 
-    print(f"INSERT 시작 : {len(df)}건")
+    manufacturer_id = get_manufacturer_id(
+        engine,
+        manufacturer_name,
+    )
+
+    df.insert(0, "manufacturer_id", manufacturer_id)
+
+    print(f"INSERT 시작 : {manufacturer_name} ({len(df)}건)")
 
     df.to_sql(
         name=table_name,
@@ -91,14 +125,33 @@ def insert_service_center(
         chunksize=1000,
     )
 
-    print(f"INSERT 완료 : {len(df)}건")
+    print(f"INSERT 완료 : {manufacturer_name} ({len(df)}건)")
 
 
 if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parents[3]
 
-    insert_service_center(ROOT / "crawled" / "benz_service_centers.csv")
-    insert_service_center(ROOT / "crawled" / "bmw_service_centers.csv")
-    insert_service_center(ROOT / "crawled" / "volkswagen_service_centers.csv")
-    insert_service_center(ROOT / "crawled" / "hyundai_service_centers.csv")
-    insert_service_center(ROOT / "crawled" / "kia_service_centers.csv")
+    insert_service_center(
+        ROOT / "crawled" / "benz_service_centers.csv",
+        "벤츠",
+    )
+
+    insert_service_center(
+        ROOT / "crawled" / "bmw_service_centers.csv",
+        "BMW",
+    )
+
+    insert_service_center(
+        ROOT / "crawled" / "volkswagen_service_centers.csv",
+        "폭스바겐",
+    )
+
+    insert_service_center(
+        ROOT / "crawled" / "hyundai_service_centers.csv",
+        "현대",
+    )
+
+    insert_service_center(
+        ROOT / "crawled" / "kia_service_centers.csv",
+        "기아",
+    )

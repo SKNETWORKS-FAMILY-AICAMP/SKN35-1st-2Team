@@ -12,7 +12,6 @@ import streamlit as st
 # =========================================================
 MAX_LINE_LENGTH = 74
 
-# FAQ.py가 어느 폴더에 있든 프로젝트의 data/car_faq.csv를 찾도록 설정
 CURRENT_DIR = Path(__file__).resolve().parent
 CSV_CANDIDATES = [
     CURRENT_DIR / "data" / "car_faq.csv",
@@ -76,13 +75,7 @@ def wrap_lines(
     text: str,
     width: int = MAX_LINE_LENGTH,
 ) -> list[str]:
-    """
-    공백을 포함하여 한 줄이 지정한 글자 수를 넘지 않도록 나눕니다.
-
-    한 단어가 74자를 넘는 특수한 경우에는 단어 자체를 강제로 자르지 않습니다.
-    """
     clean_text = normalize_spaces(text)
-
     if not clean_text:
         return []
 
@@ -97,40 +90,18 @@ def wrap_lines(
 
 
 def convert_links(text: str) -> str:
-    """문자열을 HTML 안전 문자로 바꾸고 자동차리콜센터 주소를 링크로 변환합니다."""
     safe_text = html.escape(str(text))
-
     link_html = (
         '<a href="https://www.car.go.kr" target="_blank" '
         'rel="noopener noreferrer">자동차리콜센터</a>'
     )
-
-    safe_text = safe_text.replace(
-        "https://www.car.go.kr",
-        link_html,
-    )
-
-    safe_text = safe_text.replace(
-        "www.car.go.kr",
-        link_html,
-    )
-
+    safe_text = safe_text.replace("https://www.car.go.kr", link_html)
+    safe_text = safe_text.replace("www.car.go.kr", link_html)
     return safe_text
 
 
 def split_numbered_items(text: str) -> list[str]:
-    """
-    답변을 일반 문장과 번호 항목으로 분리합니다.
-
-    분리 대상:
-    - 1. 2. 3.
-    - ① ② ③
-    - ㅇ 제목
-    - -, * 글머리표
-    """
     clean_text = normalize_spaces(text)
-
-    # 번호와 글머리표 앞에 내부 구분자를 삽입합니다.
     pattern = (
         r"(?="
         r"(?:\d+\.\s+)"
@@ -139,46 +110,19 @@ def split_numbered_items(text: str) -> list[str]:
         r"|(?:[-*]\s+)"
         r")"
     )
-
     marked_text = re.sub(pattern, "|||", clean_text)
-
-    return [
-        block.strip()
-        for block in marked_text.split("|||")
-        if block.strip()
-    ]
+    return [block.strip() for block in marked_text.split("|||") if block.strip()]
 
 
 def format_normal_block(text: str) -> str:
-    """일반 답변 내용을 최대 74자로 줄바꿈합니다."""
     lines = wrap_lines(text, MAX_LINE_LENGTH)
-
-    return "<br>".join(
-        convert_links(line)
-        for line in lines
-    )
+    return "<br>".join(convert_links(line) for line in lines)
 
 
-def format_numbered_block(
-    marker: str,
-    content: str,
-) -> str:
-    """
-    번호 항목을 새 줄에서 시작하고, 다음 줄부터 내용 위치에 맞춰 들여씁니다.
-
-    출력 예시:
-        2. 「부가가치세법」에 따른 세금계산서 또는 영수증
-           (신용카드매출전표 포함)
-    """
+def format_numbered_block(marker: str, content: str) -> str:
     base_indent = 4
     marker_space = len(marker) + 1
-
-    # 들여쓰기와 번호 길이까지 포함하여 최대 74자가 되도록 계산
-    content_width = (
-        MAX_LINE_LENGTH
-        - base_indent
-        - marker_space
-    )
+    content_width = MAX_LINE_LENGTH - base_indent - marker_space
 
     lines = wrap_lines(content, content_width)
 
@@ -189,10 +133,7 @@ def format_numbered_block(
             f"</div>"
         )
 
-    line_html = "<br>".join(
-        convert_links(line)
-        for line in lines
-    )
+    line_html = "<br>".join(convert_links(line) for line in lines)
 
     return (
         '<div class="faq-numbered-item">'
@@ -203,17 +144,13 @@ def format_numbered_block(
 
 
 def format_bullet_block(content: str) -> str:
-    """글머리표 항목을 줄바꿈하고 다음 줄을 들여씁니다."""
     content_width = MAX_LINE_LENGTH - 7
     lines = wrap_lines(content, content_width)
 
     if not lines:
         return ""
 
-    line_html = "<br>".join(
-        convert_links(line)
-        for line in lines
-    )
+    line_html = "<br>".join(convert_links(line) for line in lines)
 
     return (
         '<div class="faq-numbered-item">'
@@ -224,9 +161,7 @@ def format_bullet_block(content: str) -> str:
 
 
 def format_heading_block(content: str) -> str:
-    """'ㅇ 내용' 형태의 중간 제목을 굵게 표시합니다."""
     lines = wrap_lines(content, MAX_LINE_LENGTH - 2)
-
     return (
         '<div class="faq-subheading">'
         + "<br>".join(convert_links(line) for line in lines)
@@ -235,16 +170,6 @@ def format_heading_block(content: str) -> str:
 
 
 def format_answer(text: str) -> str:
-    """
-    FAQ 답변 전체를 HTML로 변환합니다.
-
-    적용 규칙:
-    1. 일반 A 내용은 공백 포함 최대 74자
-    2. 1., 2., 3. 항목은 각각 새 줄에서 시작
-    3. ①, ②, ③ 항목도 각각 새 줄에서 시작
-    4. 번호 항목의 다음 줄은 내용 시작 위치에 맞춰 들여쓰기
-    5. 항목 사이에 간격을 넣어 가독성 개선
-    """
     blocks = split_numbered_items(text)
     formatted_blocks = []
 
@@ -268,42 +193,23 @@ def format_answer(text: str) -> str:
         if numbered_match:
             marker, content = numbered_match.groups()
             formatted_blocks.append(
-                format_numbered_block(
-                    marker,
-                    content.strip(),
-                )
+                format_numbered_block(marker, content.strip())
             )
-
         elif heading_match:
             formatted_blocks.append(
-                format_heading_block(
-                    heading_match.group(1).strip()
-                )
+                format_heading_block(heading_match.group(1).strip())
             )
-
         elif bullet_match:
             formatted_blocks.append(
-                format_bullet_block(
-                    bullet_match.group(1).strip()
-                )
+                format_bullet_block(bullet_match.group(1).strip())
             )
-
         else:
-            # 일반 문장은 '다.' 또는 '요.' 뒤에서 문단을 한 번 더 분리
-            sentences = re.split(
-                r"(?<=[다요]\.)\s+",
-                block,
-            )
-
+            sentences = re.split(r"(?<=[다요]\.)\s+", block)
             paragraph_html = []
-
             for sentence in sentences:
                 sentence = sentence.strip()
-
                 if sentence:
-                    paragraph_html.append(
-                        format_normal_block(sentence)
-                    )
+                    paragraph_html.append(format_normal_block(sentence))
 
             formatted_blocks.append(
                 '<div class="faq-normal-block">'
@@ -324,34 +230,42 @@ st.markdown(
         scroll-behavior: smooth;
     }
 
-    /* TOP 버튼 이동 위치가 Streamlit 상단 메뉴에 가려지지 않도록 설정 */
     #faq-top {
         scroll-margin-top: 80px;
     }
 
-    /* Streamlit에서 실제로 스크롤되는 영역 */
     [data-testid="stAppViewContainer"] {
         scroll-behavior: smooth;
     }
 
-    [data-testid="stExpander"] summary {
-        display: flex;
-        align-items: center;
+    /* -------------------------------------------------- */
+    /* 질문 버튼 강제 왼쪽 정렬 스타일 */
+    /* -------------------------------------------------- */
+    button[data-testid="stBaseButton-secondary"] {
+        justify-content: flex-start !important;
+        text-align: left !important;
+        padding: 0.6rem 1rem !important;
     }
 
-    [data-testid="stExpander"] summary p {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
+    button[data-testid="stBaseButton-secondary"] > div {
+        justify-content: flex-start !important;
+        width: 100% !important;
     }
 
-    [data-testid="stExpander"] summary p::before {
-        content: "Q. ";
-        font-weight: 700;
+    button[data-testid="stBaseButton-secondary"] p {
+        text-align: left !important;
+        font-weight: 600 !important;
+        font-size: 1.15rem !important;     # Q. 글자 폰트 크기 설정
     }
 
-    [data-testid="stExpanderDetails"] {
-        padding: 0.8rem 1.5rem 1.3rem 1.5rem;
+    /* 답변 상자 스타일 */
+    .faq-answer-container {
+        padding: 1.2rem 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #ff4b4b;
+        margin-top: -0.2rem;
+        margin-bottom: 0.8rem;
     }
 
     .faq-answer-box {
@@ -366,6 +280,7 @@ st.markdown(
 
     .faq-answer-label {
         font-weight: 700;
+        color: #ff4b4b;
     }
 
     .faq-answer-content {
@@ -407,28 +322,23 @@ st.markdown(
         text-decoration: underline;
     }
 
-    /* HTML 텍스트 출력 오류가 없는 단순 앵커 방식 TOP 버튼 */
+    /* TOP 버튼 */
     .faq-top-button {
         position: fixed;
         right: 30px;
         bottom: 30px;
         z-index: 9999;
-
         display: flex;
         align-items: center;
         justify-content: center;
-
         width: 52px;
         height: 52px;
         border-radius: 50%;
-
         background: #ff4b4b;
         color: white !important;
-
         font-size: 13px;
         font-weight: 700;
         text-decoration: none !important;
-
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
         transition: transform 0.15s ease, background 0.15s ease;
     }
@@ -445,7 +355,6 @@ st.markdown(
             width: 48px;
             height: 48px;
         }
-
         .faq-numbered-item {
             padding-left: 0.3rem;
         }
@@ -460,11 +369,8 @@ st.markdown(
 # 화면 출력
 # =========================================================
 
-# TOP 버튼을 클릭했을 때 이동할 위치
-st.markdown(
-    '<div id="faq-top"></div>',
-    unsafe_allow_html=True,
-)
+# TOP 버튼 앵커
+st.markdown('<div id="faq-top"></div>', unsafe_allow_html=True)
 
 title_col, spacer_col, link_col = st.columns(
     [3, 6, 3],
@@ -481,56 +387,63 @@ with link_col:
         use_container_width=True,
     )
 
-st.write(
-    "자동차 리콜 및 제작결함과 관련하여 "
-    "자주 묻는 질문을 확인해 보세요."
-)
-
+st.write("자동차 리콜 및 제작결함과 관련하여 자주 묻는 질문을 확인해 보세요.")
 st.divider()
 
 
 try:
     faq_df = load_faq_data()
-
 except (FileNotFoundError, ValueError, UnicodeDecodeError) as error:
     st.error(str(error))
     st.stop()
 
+# 세션 상태 초기화 (열린 FAQ의 index 저장)
+if "opened_faq_index" not in st.session_state:
+    st.session_state.opened_faq_index = None
 
-for _, row in faq_df.iterrows():
+# FAQ 목록 출력 (단 하나만 열리는 아코디언)
+for index, row in faq_df.reset_index(drop=True).iterrows():
     question = str(row["question"]).strip()
     answer = str(row["answer"]).strip()
 
-    # 질문 원문에 Q.가 있으면 제거
-    toggle_title = re.sub(
-        r"^Q[.,]\s*",
-        "",
-        question,
-    )
-
+    toggle_title = re.sub(r"^Q[.,]\s*", "", question)
     formatted_answer = format_answer(answer)
 
-    with st.expander(toggle_title):
+    is_open = st.session_state.opened_faq_index == index
+    icon = "▼" if is_open else "▶"
+
+    # 질문 클릭 버튼
+    if st.button(
+        f"{icon} Q. {toggle_title}",
+        key=f"faq_btn_{index}",
+        use_container_width=True,
+    ):
+        if is_open:
+            st.session_state.opened_faq_index = None
+        else:
+            st.session_state.opened_faq_index = index
+        st.rerun()
+
+    # 열린 항목 답변 출력
+    if is_open:
         st.markdown(
             f"""
-            <div class="faq-answer-box">
-                <div class="faq-answer-label">A.</div>
-                <div class="faq-answer-content">
-                    {formatted_answer}
+            <div class="faq-answer-container">
+                <div class="faq-answer-box">
+                    <div class="faq-answer-label">A.</div>
+                    <div class="faq-answer-content">
+                        {formatted_answer}
+                    </div>
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-
-# 페이지 전체의 최상단으로 이동
+# TOP 버튼
 st.markdown(
     """
-    <a
-        class="faq-top-button"
-        href="#faq-top"
-        aria-label="맨 위로 이동">
+    <a class="faq-top-button" href="#faq-top" aria-label="맨 위로 이동">
         TOP
     </a>
     """,

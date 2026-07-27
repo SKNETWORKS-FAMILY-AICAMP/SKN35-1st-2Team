@@ -70,9 +70,9 @@ if graph_type != "위험도":
 
         # 데이터가 없는 경우 대비
         if min_year is None or max_year is None:
-            min_year, max_year = 2000, 2024
+            min_year, max_year = 2012, 2024
     else:
-        min_year, max_year = 2000, 2024
+        min_year, max_year = 2012, 2024
 
     years = list(range(min_year, max_year + 1))
 
@@ -200,8 +200,6 @@ elif graph_type == "차종별 리콜건수":
 elif graph_type == "위험도":
 
     compare_df = pd.DataFrame()
-
-    # 기업별 데이터 저장
     risk_data = {}
 
     for company in selected_companies:
@@ -211,7 +209,6 @@ elif graph_type == "위험도":
         if df.empty:
             continue
 
-        # Metric에서 사용할 데이터 저장
         risk_data[company] = df.copy()
 
         df = df.rename(columns={"리콜건수": company})
@@ -224,57 +221,68 @@ elif graph_type == "위험도":
     compare_df = compare_df.fillna(0)
 
     if compare_df.empty:
-        st.warning("최근 3년 데이터가 없습니다.")
+        st.warning("최근 2년 데이터가 없습니다.")
+
     else:
 
-        # ===============================
-        # 기업별 최근 추세 Metric
-        # ===============================
+        # ==========================================
+        # Metric
+        # ==========================================
         cols = st.columns(len(risk_data))
 
         for col, (company, chart_df) in zip(cols, risk_data.items()):
 
-            if len(chart_df) < 3:
-                continue
-
             latest = chart_df["리콜건수"].iloc[-1]
-            prev = chart_df["리콜건수"].iloc[-3]
+
+            if len(chart_df) >= 13:
+                prev = chart_df["리콜건수"].iloc[-13]
+                compare_text = "전년 동월 대비"
+
+            else:
+                prev = latest
+                compare_text = "비교 없음"
+
             diff = latest - prev
 
             if diff > 0:
                 trend = "📈 증가"
-                color = "red"
+                delta_color = "red"
             elif diff < 0:
                 trend = "📉 감소"
-                color = "blue"
+                delta_color = "blue"
             else:
                 trend = "➡ 유지"
-                color = "off"
+                delta_color = "off"
 
             with col:
                 st.metric(
-                    label=f"{company} ({chart_df.index[-1]}년)",
+                    label=f"{company} ({chart_df.index[-1]})",
                     value=f"{latest:,}건",
-                    delta=f"{diff:+,}건 ({trend})",
-                    delta_color=color
+                    delta=f"{compare_text} {diff:+,}건 ({trend})",
+                    delta_color=delta_color
                 )
 
         st.divider()
 
-        # ===============================
+        # ==========================================
         # 그래프
-        # ===============================
-        plot_df = compare_df.reset_index().melt(
-            id_vars="년도",
+        # ==========================================
+
+        plot_df = compare_df.reset_index()
+
+        plot_df = plot_df.rename(columns={"index": "연월"})
+
+        plot_df = plot_df.melt(
+            id_vars="연월",
             var_name="기업",
             value_name="리콜건수"
         )
 
-        plot_df["년도"] = plot_df["년도"].astype(str) + "년"
+        plot_df["연월"] = pd.to_datetime(plot_df["연월"])
 
         fig = px.line(
             plot_df,
-            x="년도",
+            x="연월",
             y="리콜건수",
             color="기업",
             markers=True,
@@ -286,7 +294,7 @@ elif graph_type == "위험도":
         )
 
         fig.update_layout(
-            xaxis_title="년도",
+            xaxis_title="연월",
             yaxis_title="리콜 건수",
             legend_title="기업"
         )

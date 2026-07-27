@@ -630,4 +630,3 @@ def count_news(keyword=None, source_filter=None):
     cur.close()
     conn.close()
     return row["c"] if row else 0
-

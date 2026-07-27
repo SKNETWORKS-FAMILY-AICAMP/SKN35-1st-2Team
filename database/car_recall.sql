@@ -24,6 +24,8 @@ SELECT manufacturer, model_name FROM car_recall WHERE manufacturer IN('벤츠', 
 
 # 저장 확인 용
 SELECT * FROM car_recall;
+SELECT * FROM manufacturer;
+SELECT * FROM car_model;
 
 # 용량 확인 용
 SELECT

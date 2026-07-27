@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS posts (
     password VARCHAR(255) COMMENT '수정/삭제용 비밀번호',
     created_at VARCHAR(30) COMMENT '작성일시',
     updated_at VARCHAR(30) COMMENT '수정일시',
-    likes INT DEFAULT 0 COMMENT '공감(좋아요) 수',
-
+    likes INT DEFAULT 0 COMMENT '공감(좋아요) 수',  -- ★ 좋아요 기능을 위해 추가된 likes 컬럼
+    
     INDEX idx_brand (brand),
     INDEX idx_category (category),
     INDEX idx_created_at (created_at)

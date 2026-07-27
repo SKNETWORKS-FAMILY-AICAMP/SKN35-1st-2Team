@@ -27,23 +27,40 @@ def get_conn():
         port=int(os.getenv("DB_PORT", "3306")),
     )
 
-
+    
 def init_db():
     """
-    MySQL 커뮤니티 테이블(posts, comments) 및 뉴스 테이블(news)을 자동으로 생성하고,
-    기존 데이터베이스 마이그레이션을 위한 컬럼 안전장치(ALTER TABLE)를 수행합니다.
+    MySQL 제조사(manufacturer), 차량 모델(car_model), 게시글(posts), 댓글(comments), 뉴스(news) 테이블을 자동으로 생성합니다.
     """
     conn = get_conn()
     cur = conn.cursor()
     
-    # 1) 게시글(posts) 테이블 생성
+    # 1) 제조사(manufacturer) 테이블 생성
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS manufacturer (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(10)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    """)
+
+    # 2) 차량 모델(car_model) 테이블 생성
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS car_model (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            manufacturer_id INT,
+            name VARCHAR(100),
+            FOREIGN KEY (manufacturer_id) REFERENCES manufacturer(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    """)
+
+    # 3) 게시글(posts) 테이블 생성
     cur.execute("""
         CREATE TABLE IF NOT EXISTS posts (
             id INT AUTO_INCREMENT PRIMARY KEY,
+            manufacturer_id INT,
+            car_model_id INT,
             title VARCHAR(255) NOT NULL,
             content TEXT NOT NULL,
-            brand VARCHAR(50),
-            model VARCHAR(100),
             category VARCHAR(50),
             author VARCHAR(50),
             password VARCHAR(255),
@@ -51,18 +68,29 @@ def init_db():
             updated_at VARCHAR(30),
             likes INT DEFAULT 0,
             views INT DEFAULT 0,
-            INDEX idx_brand (brand),
+            FOREIGN KEY (manufacturer_id) REFERENCES manufacturer(id) ON DELETE CASCADE,
+            FOREIGN KEY (car_model_id) REFERENCES car_model(id) ON DELETE CASCADE,
             INDEX idx_category (category)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """)
     
-    # views 컬럼 유무 확인 및 자동 추가 (기존 테이블 호환성 마이그레이션 안전장치)
+    # 마이그레이션 안전장치 (기존 posts 테이블에 컬럼이 없는 경우 추가)
+    try:
+        cur.execute("ALTER TABLE posts ADD COLUMN manufacturer_id INT")
+    except Exception:
+        pass
+
+    try:
+        cur.execute("ALTER TABLE posts ADD COLUMN car_model_id INT")
+    except Exception:
+        pass
+
     try:
         cur.execute("ALTER TABLE posts ADD COLUMN views INT DEFAULT 0")
     except Exception:
-        pass  # 이미 컬럼이 존재하는 경우 예외 무시
+        pass
 
-    # 2) 댓글(comments) 테이블 생성 (posts 삭제 시 연쇄 삭제 FOREIGN KEY ON DELETE CASCADE 지정)
+    # 4) 댓글(comments) 테이블 생성 (posts 삭제 시 연쇄 삭제 FOREIGN KEY ON DELETE CASCADE 지정)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS comments (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +105,6 @@ def init_db():
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """)
     
-    # 댓글 마이그레이션 안전장치: 비밀번호 및 수정일시 컬럼 추가
     try:
         cur.execute("ALTER TABLE comments ADD COLUMN password VARCHAR(255) DEFAULT '1234'")
     except Exception:
@@ -88,7 +115,7 @@ def init_db():
     except Exception:
         pass
 
-    # 3) 리콜 뉴스(news) 테이블 생성
+    # 5) 리콜 뉴스(news) 테이블 생성
     cur.execute("""
         CREATE TABLE IF NOT EXISTS news (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,8 +130,125 @@ def init_db():
     """)
     
     conn.commit()
+
+    # 초기 제조사 및 차량 모델 시딩 (테이블이 비어있을 때만)
+    _seed_initial_manufacturers_and_models(cur, conn)
+
+    # 기존 posts 데이터 마이그레이션 (brand -> manufacturer_id, model -> car_model_id)
+    _migrate_existing_posts(cur, conn)
+
     cur.close()
     conn.close()
+
+
+def _seed_initial_manufacturers_and_models(cur, conn):
+    """제조사 및 기본 차량 모델 데이터 초기 시딩 유틸"""
+    cur.execute("SELECT COUNT(*) FROM manufacturer")
+    row = cur.fetchone()
+    count = row[0] if row else 0
+    if count == 0:
+        initial_data = {
+            "현대": ["그랜저", "싼타페", "아반떼", "투싼", "팰리세이드", "아이오닉5", "포터2", "기타"],
+            "기아": ["K5", "쏘렌토", "카니발", "스포티지", "레이", "EV6", "기타"],
+            "벤츠": ["E-Class", "S-Class", "C-Class", "GLC", "GLE", "기타"],
+            "BMW": ["5시리즈", "3시리즈", "X5", "X3", "7시리즈", "기타"],
+            "폭스바겐": ["골프", "티구안", "파사트", "ID.4", "기타"],
+        }
+        for m_name, models in initial_data.items():
+            cur.execute("INSERT INTO manufacturer (name) VALUES (%s)", (m_name,))
+            m_id = cur.lastrowid
+            for model_name in models:
+                cur.execute("INSERT INTO car_model (manufacturer_id, name) VALUES (%s, %s)", (m_id, model_name))
+        conn.commit()
+
+
+def _migrate_existing_posts(cur, conn):
+    """기존 posts 테이블의 brand 및 model 문자열 데이터를 manufacturer_id 및 car_model_id로 마이그레이션"""
+    try:
+        cur.execute("SELECT id, brand, model FROM posts WHERE (manufacturer_id IS NULL AND brand IS NOT NULL AND brand != '') OR (car_model_id IS NULL AND model IS NOT NULL AND model != '')")
+        rows = cur.fetchall()
+        if rows:
+            for r in rows:
+                p_id = r[0] if isinstance(r, tuple) else r.get('id')
+                b_str = r[1] if isinstance(r, tuple) else r.get('brand')
+                m_str = r[2] if isinstance(r, tuple) else r.get('model')
+                
+                m_id = get_or_create_manufacturer(b_str) if b_str else None
+                cm_id = get_or_create_car_model(m_id, m_str) if (m_id and m_str) else None
+                
+                cur.execute("UPDATE posts SET manufacturer_id = %s, car_model_id = %s WHERE id = %s", (m_id, cm_id, p_id))
+            conn.commit()
+    except Exception:
+        pass
+
+
+# ==========================================
+# 제조사 (manufacturer) 및 차량 모델 (car_model) 유틸
+# ==========================================
+
+def get_manufacturers():
+    """전체 제조사 목록 조회 (dict 리스트 반환)"""
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT id, name FROM manufacturer ORDER BY name ASC")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+
+def get_car_models(manufacturer_id=None):
+    """특정 제조사(또는 전체)의 차량 모델 목록 조회 (dict 리스트 반환)"""
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+    if manufacturer_id:
+        cur.execute("SELECT id, manufacturer_id, name FROM car_model WHERE manufacturer_id = %s ORDER BY name ASC", (manufacturer_id,))
+    else:
+        cur.execute("SELECT id, manufacturer_id, name FROM car_model ORDER BY name ASC")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+
+def get_or_create_manufacturer(name):
+    """제조사 명칭으로 ID 조회 (없을 경우 자동 생성 후 ID 반환)"""
+    if not name or not str(name).strip():
+        return None
+    name_clean = str(name).strip()
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT id FROM manufacturer WHERE name = %s", (name_clean,))
+    row = cur.fetchone()
+    if row:
+        m_id = row['id']
+    else:
+        cur.execute("INSERT INTO manufacturer (name) VALUES (%s)", (name_clean,))
+        conn.commit()
+        m_id = cur.lastrowid
+    cur.close()
+    conn.close()
+    return m_id
+
+
+def get_or_create_car_model(manufacturer_id, name):
+    """제조사 ID 및 차량 모델 명칭으로 ID 조회 (없을 경우 자동 생성 후 ID 반환)"""
+    if not name or not str(name).strip() or not manufacturer_id:
+        return None
+    name_clean = str(name).strip()
+    conn = get_conn()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT id FROM car_model WHERE manufacturer_id = %s AND name = %s", (manufacturer_id, name_clean))
+    row = cur.fetchone()
+    if row:
+        cm_id = row['id']
+    else:
+        cur.execute("INSERT INTO car_model (manufacturer_id, name) VALUES (%s, %s)", (manufacturer_id, name_clean))
+        conn.commit()
+        cm_id = cur.lastrowid
+    cur.close()
+    conn.close()
+    return cm_id
 
 
 def increment_views(post_id):
@@ -121,16 +265,21 @@ def increment_views(post_id):
 # 게시글 (posts) CRUD 및 비즈니스 로직
 # ==========================================
 
-def add_post(title, content, brand, model, category, author, password):
-    """새로운 커뮤니티 게시글을 DB에 작성"""
+def add_post(title, content, brand=None, model=None, category="기타", author="익명", password="1234", manufacturer_id=None, car_model_id=None):
+    """새로운 커뮤니티 게시글을 DB에 작성 (manufacturer_id, car_model_id FK 지원)"""
+    if not manufacturer_id and brand:
+        manufacturer_id = get_or_create_manufacturer(brand)
+    if not car_model_id and model and manufacturer_id:
+        car_model_id = get_or_create_car_model(manufacturer_id, model)
+
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO posts (title, content, brand, model, category, author, password, created_at, updated_at, likes)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0)
+        INSERT INTO posts (title, content, manufacturer_id, car_model_id, category, author, password, created_at, updated_at, likes, views)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0, 0)
         """,
-        (title, content, brand, model, category, author, password,
+        (title, content, manufacturer_id, car_model_id, category, author, password,
          datetime.now().strftime("%Y-%m-%d %H:%M"), datetime.now().strftime("%Y-%m-%d %H:%M")),
     )
     conn.commit()
@@ -152,15 +301,20 @@ def verify_post_password(post_id, input_password):
     return stored_password == (input_password or "")
 
 
-def update_post(post_id, title, content, brand, model, category):
-    """기존 게시글의 정보(제목, 내용, 브랜드, 모델, 카테고리) 및 수정일시(updated_at) 갱신"""
+def update_post(post_id, title, content, brand=None, model=None, category="기타", manufacturer_id=None, car_model_id=None):
+    """기존 게시글의 정보(제목, 내용, 제조사 ID, 모델 ID, 카테고리) 및 수정일시(updated_at) 갱신"""
+    if not manufacturer_id and brand:
+        manufacturer_id = get_or_create_manufacturer(brand)
+    if not car_model_id and model and manufacturer_id:
+        car_model_id = get_or_create_car_model(manufacturer_id, model)
+
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
         """
-        UPDATE posts SET title=%s, content=%s, brand=%s, model=%s, category=%s, updated_at=%s WHERE id=%s
+        UPDATE posts SET title=%s, content=%s, manufacturer_id=%s, car_model_id=%s, category=%s, updated_at=%s WHERE id=%s
         """,
-        (title, content, brand, model, category, datetime.now().strftime("%Y-%m-%d %H:%M"), post_id),
+        (title, content, manufacturer_id, car_model_id, category, datetime.now().strftime("%Y-%m-%d %H:%M"), post_id),
     )
     conn.commit()
     cur.close()
@@ -180,46 +334,70 @@ def delete_post(post_id):
 
 def get_posts(brand_filter=None, category_filter=None, keyword=None, sort_by="최신순", search_target="제목+내용"):
     """
-    브랜드, 카테고리, 키워드, 검색 범위(제목/내용/전체) 및 정렬 조건(최신순/조회순/공감순)에 맞춰 게시글 목록 조회
+    manufacturer 및 car_model 테이블과 LEFT JOIN하여 게시글 목록 조회 (brand, model 명칭 자동 로드)
     """
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
-    query = "SELECT * FROM posts WHERE 1=1"
+    query = """
+        SELECT 
+            p.id,
+            p.manufacturer_id,
+            p.car_model_id,
+            p.title,
+            p.content,
+            p.category,
+            p.author,
+            p.password,
+            p.created_at,
+            p.updated_at,
+            COALESCE(p.likes, 0) AS likes,
+            COALESCE(p.views, 0) AS views,
+            COALESCE(m.name, p.brand, '') AS brand,
+            COALESCE(cm.name, p.model, '') AS model
+        FROM posts p
+        LEFT JOIN manufacturer m ON p.manufacturer_id = m.id
+        LEFT JOIN car_model cm ON p.car_model_id = cm.id
+        WHERE 1=1
+    """
     params = []
     
-    # 브랜드 필터 조건
+    # 브랜드/제조사 필터 조건
     if brand_filter and brand_filter != "전체":
-        query += " AND brand = %s"
-        params.append(brand_filter)
+        if str(brand_filter).isdigit():
+            query += " AND p.manufacturer_id = %s"
+            params.append(int(brand_filter))
+        else:
+            query += " AND m.name = %s"
+            params.append(brand_filter)
         
     # 카테고리 필터 조건
     if category_filter and category_filter != "전체":
-        query += " AND category = %s"
+        query += " AND p.category = %s"
         params.append(category_filter)
         
     # 키워드 검색 범위 조건 동적 생성
     if keyword and str(keyword).strip():
         kw = f"%{str(keyword).strip()}%"
         if search_target == "제목만":
-            query += " AND title LIKE %s"
+            query += " AND p.title LIKE %s"
             params.append(kw)
         elif search_target == "내용만":
-            query += " AND content LIKE %s"
+            query += " AND p.content LIKE %s"
             params.append(kw)
         elif search_target == "제목+내용":
-            query += " AND (title LIKE %s OR content LIKE %s)"
+            query += " AND (p.title LIKE %s OR p.content LIKE %s)"
             params.extend([kw, kw])
         else:  # "전체" (제목 + 내용 + 모델 + 작성자 통합 검색)
-            query += " AND (title LIKE %s OR content LIKE %s OR model LIKE %s OR author LIKE %s)"
+            query += " AND (p.title LIKE %s OR p.content LIKE %s OR cm.name LIKE %s OR p.author LIKE %s)"
             params.extend([kw, kw, kw, kw])
 
     # 정렬 방식 지정 (조회순, 공감순, 최신순)
     if sort_by == "조회순":
-        query += " ORDER BY views DESC, created_at DESC, id DESC"
+        query += " ORDER BY p.views DESC, p.created_at DESC, p.id DESC"
     elif sort_by == "공감순":
-        query += " ORDER BY likes DESC, created_at DESC, id DESC"
+        query += " ORDER BY p.likes DESC, p.created_at DESC, p.id DESC"
     else:  # 최신순
-        query += " ORDER BY created_at DESC, id DESC"
+        query += " ORDER BY p.created_at DESC, p.id DESC"
 
     cur.execute(query, params)
     rows = cur.fetchall()
@@ -229,10 +407,31 @@ def get_posts(brand_filter=None, category_filter=None, keyword=None, sort_by="�
 
 
 def get_post(post_id):
-    """단일 게시글 상세 데이터 조회"""
+    """단일 게시글 상세 데이터 조회 (manufacturer 및 car_model LEFT JOIN)"""
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT * FROM posts WHERE id = %s", (post_id,))
+    query = """
+        SELECT 
+            p.id,
+            p.manufacturer_id,
+            p.car_model_id,
+            p.title,
+            p.content,
+            p.category,
+            p.author,
+            p.password,
+            p.created_at,
+            p.updated_at,
+            COALESCE(p.likes, 0) AS likes,
+            COALESCE(p.views, 0) AS views,
+            COALESCE(m.name, p.brand, '') AS brand,
+            COALESCE(cm.name, p.model, '') AS model
+        FROM posts p
+        LEFT JOIN manufacturer m ON p.manufacturer_id = m.id
+        LEFT JOIN car_model cm ON p.car_model_id = cm.id
+        WHERE p.id = %s
+    """
+    cur.execute(query, (post_id,))
     row = cur.fetchone()
     cur.close()
     conn.close()

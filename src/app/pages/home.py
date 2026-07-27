@@ -1,16 +1,15 @@
 import os
 import sys
-import streamlit as st
-import plotly.express as px
-from db.db_utils import get_news, count_news
 from pathlib import Path
+
+import streamlit as st
+
+from db.db_utils import count_news, get_news
+
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from db.refind_data import (
-    get_latest_trend,
-    get_recent_recalls,
-    get_news
-)
+from db.home import get_service_center_count
+from db.refind_data import get_latest_trend, get_news, get_recent_recalls
 
 trend_df = get_latest_trend()
 recent_df = get_recent_recalls()
@@ -47,7 +46,7 @@ with col1:
         label=f"{trend_df.index[-1]}년 리콜 건수",
         value=f"{int(latest['리콜건수']):,}건",
         delta=f"{recall_diff:+,}건",
-        delta_color="inverse"
+        delta_color="inverse",
     )
 
 with col2:
@@ -55,13 +54,22 @@ with col2:
         label=f"{trend_df.index[-1]}년 리콜 대상 차량 수",
         value=f"{int(latest['리콜대상차량수']):,}대",
         delta=f"{vehicle_diff:+,}대",
-        delta_color="inverse"
+        delta_color="inverse",
     )
 with col3:
     total_news_count = count_news()
-    st.metric(label="자동차 주요 뉴스", value=f"{total_news_count} 건", delta="실시간 동기화")
+    st.metric(
+        label="자동차 주요 뉴스", value=f"{total_news_count} 건", delta="실시간 동기화"
+    )
 with col4:
-    st.metric(label="제휴 서비스센터 수", value="3,820 곳", delta="전국 커버")
+    service_center_count = get_service_center_count()
+
+    # :, 구문을 추가하여 3자리마다 콤마 적용
+    st.metric(
+        label="제휴 서비스센터 수",
+        value=f"{service_center_count:,} 곳",
+        delta="전국 커버",
+    )
 
 st.markdown("---")
 # 5. 3개 핵심 영역 카드
@@ -71,9 +79,7 @@ with col_recall:
     st.markdown("### 🚨 최근 리콜 현황")
     with st.container(border=True):
         for _, row in recent_df.iterrows():
-            st.markdown(
-                f"**{row['제조사']}** | {row['차명']}"
-            )
+            st.markdown(f"**{row['제조사']}** | {row['차명']}")
             st.caption(f"사유: {row['리콜사유']}")
 
         if st.button("📈 리콜 분석 바로가기", key="btn_chart"):
@@ -89,13 +95,9 @@ with col_news:
             for news in recent_news:
                 raw_title = news["title"] or ""
                 display_title = (
-                    raw_title[:25] + "..."
-                    if len(raw_title) > 25
-                    else raw_title
+                    raw_title[:25] + "..." if len(raw_title) > 25 else raw_title
                 )
-                st.markdown(
-                    f"**{news['author'] or '국토교통부'}** | {display_title}"
-                )
+                st.markdown(f"**{news['author'] or '국토교통부'}** | {display_title}")
                 st.caption(f"보도일자 : {news['date']}")
 
         if st.button("📰 자동차 뉴스 더보기", key="btn_news"):

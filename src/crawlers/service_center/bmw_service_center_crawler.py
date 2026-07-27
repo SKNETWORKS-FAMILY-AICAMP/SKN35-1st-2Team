@@ -15,7 +15,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from src.services.geocoding import enrich_with_coords
 from src.services.phone_format import format_phone
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 SAVE_PATH = ROOT / "crawled" / "bmw_service_centers.csv"
 
@@ -146,7 +146,6 @@ def crawl_bmw_page(driver):
                     "name": name,
                     "address": address,
                     "phone": phone,
-                    "company": "BMW",
                 }
             )
 
@@ -165,7 +164,6 @@ def parse_service_center(data):
         "name": data.get("name"),
         "address": data.get("address"),
         "phone": data.get("phone"),
-        "company": data.get("company"),
     }
 
 

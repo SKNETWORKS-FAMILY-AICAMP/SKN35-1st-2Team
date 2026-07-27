@@ -1,113 +1,302 @@
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-# db 모듈을 import하기 위해 프로젝트 루트 경로를 sys.path에 추가
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
-from db.refind_data import get_yearly_recall, get_car_model_recall, get_risk_trend
 
-# ==============Home 버튼==============
-col1, col2 = st.columns([8, 1])
+from db.refind_data import (
+    get_company_list,
+    get_year_range,
+    get_yearly_recall,
+    get_car_model_recall,
+    get_risk_trend,
+)
 
-with col2:
-    if st.button("🏠 Home"):
-        st.switch_page("pages/home.py")
+# ============== 브랜드 색상 ==============
+BRAND_COLORS = {
+    "현대": {"main": "#00AAD2", "dark": "#00728C"},
+    "기아": {"main": "#BB162B", "dark": "#8C0F20"},
+    "벤츠": {"main": "#1A1A1A", "dark": "#000000"},
+    "BMW": {"main": "#0066B1", "dark": "#003D6B"},
+    "폭스바겐": {"main": "#001E50", "dark": "#000E28"},
+}
 
-st.title("🚗 자동차 리콜 분석")
-
-# ============== Session State 초기화 ==============
-if "tabs" not in st.session_state:
-    st.session_state.tabs = []
-    
-# ============== 기업 선택 ==============
-companies = ["현대", "기아", "BMW"]
-selected_company = st.radio("기업 선택", companies,horizontal=True)
-
-# ============== 탭 추가 ==============
-if st.button("➕ 탭 추가"):
-    # 중복 체크
-    exist = any(tab["company"] == selected_company for tab in st.session_state.tabs)
-    if exist:
-        st.warning(f"'{selected_company}' 탭은 이미 열려 있습니다.")
-    else:
-        st.session_state.tabs.append({"company": selected_company, "start": 2012, "end": 2024, "graph": "기업별 리콜건수"})
-        st.rerun()
+st.markdown(
+    f"""
+<div class="main-header">
+    <div>
+        <div class="eyebrow">Official Service Network</div>
+        <h1>자동차 리콜 분석</h1>
+        <p>제조사와 분석 항목을 선택하여 리콜 현황과 위험도 분석 결과를 확인하세요.</p>
+    </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 st.divider()
 
-# ============== 탭이 없을 때 ==============
-if len(st.session_state.tabs) == 0:
-    st.info("기업을 선택한 후 '➕ 탭 추가' 버튼을 눌러주세요.")
+# ============== 기업 선택 ==============
+companies = get_company_list()
 
-# ============== 탭 생성 ==============
-else:
-    tab_names = [tab["company"] for tab in st.session_state.tabs]
-    tabs = st.tabs(tab_names)
-    years = list(range(2000, 2025))
+selected_companies = st.multiselect(
+    "비교할 기업 선택",
+    companies
+)
 
-    # ============== 탭 내용 ==============
-    for i, tab in enumerate(tabs):
-         with tab:
-            info = st.session_state.tabs[i]
-            st.subheader(f"📊 {info['company']} 분석")
+# ============== 그래프 종류 ==============
+graph_options = ["년도별 리콜건수", "위험도"]
 
-            # ============== 그래프 종류 선택 ==============
-            info["graph"] = st.radio( "그래프 종류",["년도별 리콜건수","차종별 리콜건수","위험도"],horizontal=True,key=f"graph_{i}")
-            st.divider()
+if len(selected_companies) == 1:
+    graph_options.insert(1, "차종별 리콜건수")
 
-            # ============== 기간 선택 ==============
-            if info["graph"] != "위험도":
+graph_type = st.radio(
+    "그래프 종류",
+    graph_options,
+    horizontal=True
+)
 
-                with st.form(key=f"period_form_{i}"):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        start = st.selectbox( "시작년도", years,index=years.index(info["start"]))
+if not selected_companies:
+    st.info("기업을 선택해주세요.")
+    st.stop()
 
-                    with col2:
-                        end = st.selectbox("종료년도", years, index=years.index(info["end"]))
 
-                    apply = st.form_submit_button("적용")
+# ============== 연도 선택 ==============
+if graph_type != "위험도":
 
-                    if apply:
-                        info["start"] = start
-                        info["end"] = end
-                        st.rerun()
+    if selected_companies:
+        min_year, max_year = get_year_range(selected_companies)
 
-            st.divider()
-            # ============== 그래프 출력 ==============
-            st.write("### 📈 그래프 영역")
-            if info["graph"] == "년도별 리콜건수":
-                st.info(f"기업 : {info['company']} | 기간 : {info['start']} ~ {info['end']}")
-                chart_df = get_yearly_recall(info["company"], info["start"], info["end"])
-                if chart_df.empty:
-                    st.warning("해당 조건에 데이터가 없습니다.")
-                else:
-                    st.line_chart(chart_df, y="리콜건수")
+        # 데이터가 없는 경우 대비
+        if min_year is None or max_year is None:
+            min_year, max_year = 2012, 2024
+    else:
+        min_year, max_year = 2012, 2024
 
-            elif info["graph"] == "차종별 리콜건수":
-                st.info(f"기업 : {info['company']} | 기간 : {info['start']} ~ {info['end']}")
-                chart_df = get_car_model_recall(info["company"], info["start"], info["end"])
-                if chart_df.empty:
-                    st.warning("해당 조건에 데이터가 없습니다.")
-                else:
-                    st.bar_chart(chart_df, y="리콜건수")
+    years = list(range(min_year, max_year + 1))
 
-            elif info["graph"] == "위험도":
-                st.info(f"기업 : {info['company']} | 최근 3년 추세")
-                chart_df = get_risk_trend(info["company"])
-                if chart_df.empty:
-                    st.warning("최근 3년 데이터가 없습니다.")
-                else:
-                    st.line_chart(chart_df, y="리콜건수")
-                    if len(chart_df) >= 2:
-                        latest = chart_df["리콜건수"].iloc[-1]
-                        prev = chart_df["리콜건수"].iloc[-2]
-                        diff = latest - prev
-                        trend = "📈 증가" if diff > 0 else ("📉 감소" if diff < 0 else "➡ 유지")
-                        st.metric(f"{chart_df.index[-1]}년 전년 대비", f"{latest}건", delta=f"{diff} ({trend})")
+    col1, col2 = st.columns(2)
 
-            st.divider()
-            
-            # ============== 탭 삭제 ==============
-            if st.button("🗑 탭 삭제",key=f"delete_{i}"):
-                del st.session_state.tabs[i]
-                st.rerun()
+    with col1:
+        start = st.selectbox(
+            "시작년도",
+            years,
+            index=0
+        )
+
+    with col2:
+        end = st.selectbox(
+            "종료년도",
+            years,
+            index=len(years) - 1
+        )
+
+st.divider()
+# ==========================================================
+# 년도별
+# ==========================================================
+
+if graph_type == "년도별 리콜건수":
+
+    compare_df = pd.DataFrame()
+
+    for company in selected_companies:
+
+        df = get_yearly_recall(company, start, end)
+
+        if df.empty:
+            continue
+
+        df = df.rename(columns={"리콜건수": company})
+
+        if compare_df.empty:
+            compare_df = df
+        else:
+            compare_df = compare_df.join(df, how="outer")
+
+    compare_df = compare_df.fillna(0)
+
+    if compare_df.empty:
+        st.warning("조회된 데이터가 없습니다.")
+    else:
+
+        plot_df = compare_df.reset_index().melt(
+            id_vars="년도",
+            var_name="기업",
+            value_name="리콜건수"
+        )
+
+        plot_df["년도"] = plot_df["년도"].astype(str) + "년"
+
+        fig = px.line(
+            plot_df,
+            x="년도",
+            y="리콜건수",
+            color="기업",
+            markers=True,
+            color_discrete_map={
+                c: BRAND_COLORS[c]["main"]
+                for c in selected_companies
+                if c in BRAND_COLORS
+            }
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================================
+# 차종별
+# ==========================================================
+
+elif graph_type == "차종별 리콜건수":
+
+    compare_df = pd.DataFrame()
+
+    for company in selected_companies:
+
+        df = get_car_model_recall(company, start, end)
+
+        if df.empty:
+            continue
+
+        df = df.rename(columns={"리콜건수": company})
+
+        if compare_df.empty:
+            compare_df = df
+        else:
+            compare_df = compare_df.join(df, how="outer")
+
+    compare_df = compare_df.fillna(0)
+
+    if compare_df.empty:
+        st.warning("조회된 데이터가 없습니다.")
+    else:
+
+        plot_df = compare_df.reset_index().melt(
+            id_vars="차명",
+            var_name="기업",
+            value_name="리콜건수"
+        )
+
+        fig = px.bar(
+            plot_df,
+            x="차명",
+            y="리콜건수",
+            color="기업",
+            barmode="group",
+            color_discrete_map={
+                c: BRAND_COLORS[c]["main"]
+                for c in selected_companies
+                if c in BRAND_COLORS
+            }
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================================
+# 위험도
+# ==========================================================
+
+elif graph_type == "위험도":
+
+    compare_df = pd.DataFrame()
+    risk_data = {}
+
+    for company in selected_companies:
+
+        df = get_risk_trend(company)
+
+        if df.empty:
+            continue
+
+        risk_data[company] = df.copy()
+
+        df = df.rename(columns={"리콜건수": company})
+
+        if compare_df.empty:
+            compare_df = df
+        else:
+            compare_df = compare_df.join(df, how="outer")
+
+    compare_df = compare_df.fillna(0)
+
+    if compare_df.empty:
+        st.warning("최근 2년 데이터가 없습니다.")
+
+    else:
+
+        # ==========================================
+        # Metric
+        # ==========================================
+        cols = st.columns(len(risk_data))
+
+        for col, (company, chart_df) in zip(cols, risk_data.items()):
+
+            latest = chart_df["리콜건수"].iloc[-1]
+
+            if len(chart_df) >= 13:
+                prev = chart_df["리콜건수"].iloc[-13]
+                compare_text = "전년 동월 대비"
+
+            else:
+                prev = latest
+                compare_text = "비교 없음"
+
+            diff = latest - prev
+
+            if diff > 0:
+                trend = "📈 증가"
+                delta_color = "red"
+            elif diff < 0:
+                trend = "📉 감소"
+                delta_color = "blue"
+            else:
+                trend = "➡ 유지"
+                delta_color = "off"
+
+            with col:
+                st.metric(
+                    label=f"{company} ({chart_df.index[-1]})",
+                    value=f"{latest:,}건",
+                    delta=f"{compare_text} {diff:+,}건 ({trend})",
+                    delta_color=delta_color
+                )
+
+        st.divider()
+
+        # ==========================================
+        # 그래프
+        # ==========================================
+
+        plot_df = compare_df.reset_index()
+
+        plot_df = plot_df.rename(columns={"index": "연월"})
+
+        plot_df = plot_df.melt(
+            id_vars="연월",
+            var_name="기업",
+            value_name="리콜건수"
+        )
+
+        plot_df["연월"] = pd.to_datetime(plot_df["연월"])
+
+        fig = px.line(
+            plot_df,
+            x="연월",
+            y="리콜건수",
+            color="기업",
+            markers=True,
+            color_discrete_map={
+                c: BRAND_COLORS[c]["main"]
+                for c in selected_companies
+                if c in BRAND_COLORS
+            }
+        )
+
+        fig.update_layout(
+            xaxis_title="연월",
+            yaxis_title="리콜 건수",
+            legend_title="기업"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)

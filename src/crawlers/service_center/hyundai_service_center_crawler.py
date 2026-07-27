@@ -16,7 +16,7 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SAVE_PATH = ROOT / "crawled" / "hyundai_service_centers.csv"
 
 
@@ -70,7 +70,6 @@ def parse_service_center(raw_data):
                 "phone": format_phone(item.get("repnTn")),
                 "latitude": item.get("mapLaeVal"),
                 "longitude": item.get("mapLoeVal"),
-                "company": "현대",
             }
         )
 

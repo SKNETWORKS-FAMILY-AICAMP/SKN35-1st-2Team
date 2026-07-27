@@ -22,7 +22,7 @@ HEADERS = {
     ),
 }
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SAVE_PATH = ROOT / "crawled" / "kia_service_centers.csv"
 
 
@@ -91,7 +91,6 @@ def parse_service_center(raw_data):
                 "name": item.get("poiName"),
                 "address": item.get("addr"),
                 "phone": format_phone(item.get("telNo")),
-                "company": "기아",
             }
         )
 

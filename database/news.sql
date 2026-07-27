@@ -1,38 +1,3 @@
-CREATE DATABASE car_recall;
-
-USE car_recall;
-
-CREATE TABLE car_recall (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    manufacturer VARCHAR(50),       -- 제작자
-    model_name VARCHAR(100),         -- 차명
-    production_start DATE,          -- 생산기간(부터)
-    production_end DATE,            -- 생산기간(까지)
-    recall_start_date DATE,         -- 리콜개시일
-    recall_count INT,               -- 리콜대수
-    recall_reason TEXT              -- 리콜사유
-);
-
-SELECT database(); # database 확인
-
-SHOW tables;		# table 확인
-
-DROP TABLE car_recall;
-
-# 8650개 -- 사용할 데이터만 정제
-SELECT manufacturer, model_name FROM car_recall WHERE manufacturer IN('벤츠', '현대자동차', '기아', '비엠더블유', '폭스바겐그룹');
-
-# 저장 확인 용
-SELECT * FROM car_recall;
-
-# 용량 확인 용
-SELECT
-    table_schema AS database_name,
-    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb
-FROM information_schema.tables
-WHERE table_schema = 'car_recall'
-GROUP BY table_schema;
-
 -- 리콜 뉴스(소식) 데이터 데이터베이스 및 테이블 생성 & 초기 데이터 INSERT
 
 USE car_recall;
@@ -47,8 +12,6 @@ CREATE TABLE IF NOT EXISTS news (
     INDEX idx_published_at (published_at),
     INDEX idx_title (title)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-SELECT * FROM faq;
 
 -- 뉴스 데이터 데이터 적재 (총 14건)
 INSERT INTO news (id, title, summary, url, source, published_at) VALUES (1, '국토교통부, BYD·벤츠·현대 등 6개사 38개 차종 14만 6천대 자발적 리콜 실시', '국토교통부는 BYD코리아, 메르세데스-벤츠코리아, 스텔란티스코리아, 재규어랜드로버코리아, 현대자동차, 볼보자동차코리아에서 제작 또는 수입·판매한 총 38개 차종 146,505대에서 결함이 발견되어 자발적으로 시정조치(리콜)를 한다고 밝혔다.', 'https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95089851', '국토교통부', '2026-07-02');

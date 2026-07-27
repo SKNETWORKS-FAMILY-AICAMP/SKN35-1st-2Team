@@ -8,7 +8,8 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from db.refind_data import (
     get_latest_trend,
-    get_recent_recalls
+    get_recent_recalls,
+    get_news
 )
 
 trend_df = get_latest_trend()
@@ -81,17 +82,23 @@ with col_recall:
 with col_news:
     st.markdown("### 📰 최근 리콜 뉴스")
     with st.container(border=True):
-        recent_news = get_news()[:3]
+        recent_news = get_news()
         if not recent_news:
             st.caption("등록된 최신 뉴스가 없습니다.")
         else:
             for news in recent_news:
-                raw_title = news['title'] or ""
-                display_title = raw_title[:12] + "..." if len(raw_title) > 12 else raw_title
-                st.markdown(f"**{news['source'] or '국토교통부'}** | {display_title}")
-                st.caption(f"보도일자: {news['published_at']}")
+                raw_title = news["title"] or ""
+                display_title = (
+                    raw_title[:25] + "..."
+                    if len(raw_title) > 25
+                    else raw_title
+                )
+                st.markdown(
+                    f"**{news['author'] or '국토교통부'}** | {display_title}"
+                )
+                st.caption(f"보도일자 : {news['date']}")
 
-        if st.button("자동차 뉴스 더보기 ➔", key="btn_news"):
+        if st.button("📰 자동차 뉴스 더보기", key="btn_news"):
             st.switch_page("pages/news.py")
 
 with col_center:

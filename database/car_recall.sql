@@ -17,8 +17,6 @@ SELECT database(); # database 확인
 
 SHOW tables;		# table 확인
 
-DROP TABLE car_recall;
-
 # 8650개 -- 사용할 데이터만 정제
 SELECT manufacturer, model_name FROM car_recall WHERE manufacturer IN('벤츠', '현대자동차', '기아', '비엠더블유', '폭스바겐그룹');
 
@@ -50,7 +48,10 @@ CREATE TABLE IF NOT EXISTS news (
     INDEX idx_title (title)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-SELECT * FROM faq;
+
+
+
+SELECT * FROM news;
 
 -- 뉴스 데이터 데이터 적재 (총 14건)
 INSERT INTO news (id, title, summary, url, source, published_at) VALUES (1, '국토교통부, BYD·벤츠·현대 등 6개사 38개 차종 14만 6천대 자발적 리콜 실시', '국토교통부는 BYD코리아, 메르세데스-벤츠코리아, 스텔란티스코리아, 재규어랜드로버코리아, 현대자동차, 볼보자동차코리아에서 제작 또는 수입·판매한 총 38개 차종 146,505대에서 결함이 발견되어 자발적으로 시정조치(리콜)를 한다고 밝혔다.', 'https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95089851', '국토교통부', '2026-07-02');
@@ -67,3 +68,6 @@ INSERT INTO news (id, title, summary, url, source, published_at) VALUES (11, '�
 INSERT INTO news (id, title, summary, url, source, published_at) VALUES (12, '국토교통부 1월 발표, 현대·기아·벤츠·포르쉐 등 74개 차종 34만대 안전 리콜', '국토교통부는 새해 첫 달 현대자동차, 기아, 메르세데스-벤츠코리아, 포르쉐코리아 등 74개 차종 총 344,073대에서 제작결함이 확인되어 시정조치를 시작한다고 공개했다.', 'https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp', '국토교통부', '2026-01-16');
 INSERT INTO news (id, title, summary, url, source, published_at) VALUES (13, '현대 아이오닉5·기아 EV6, 통합 충전 제어 장치(ICCU) 소프트웨어 무상 업데이트', '전기차 라인업 아이오닉5, 아이오닉6, EV6 차량의 통합 충전 제어 장치(ICCU) 내부 과전류 보호 모듈 제어 소프트웨어 무상 업데이트 서비스 캠페인이 전국 직영 센터에서 개시된다.', 'https://www.car.go.kr/sd/newsDta/list.do', '한국교통안전공단', '2026-01-16');
 INSERT INTO news (id, title, summary, url, source, published_at) VALUES (14, '포르쉐 타이칸, 전륜 유압 브레이크 호스 밀봉성 강화 개선품 전량 교체', '포르쉐코리아는 고성능 전기 스포츠카 타이칸 전 모델의 전륜 유압 브레이크 호스가 조향 누적으로 유연성이 저하될 가능성에 대해 강도를 보강한 신형 브레이크 호스로 교체하는 리콜을 결정했다.', 'https://www.car.go.kr/sd/newsDta/list.do', '자동차리콜센터', '2026-01-16');
+
+
+SELECT * FROM faq;

@@ -191,14 +191,6 @@ st.markdown(
         line-height: 1.4 !important;
         cursor: pointer !important;
     }
-    @media (prefers-color-scheme: dark) {
-        div[class*="st-key-title_"] button,
-        div[class*="st-key-title_"] button *,
-        div[class*="st-key-title_"] button p,
-        div[class*="st-key-title_"] button span {
-            color: #ffffff !important;
-        }
-    }
     div[class*="st-key-title_"] button:hover,
     div[class*="st-key-title_"] button:hover *,
     div[class*="st-key-title_"] button:active,

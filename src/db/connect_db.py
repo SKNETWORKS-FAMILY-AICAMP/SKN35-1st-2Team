@@ -7,6 +7,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "recall_data.csv"
+DATA_PATH2 = BASE_DIR / "data" / "car_faq.csv"
+DATA_PATH3 = BASE_DIR / "crawled" / "recall_news_english_columns.csv"
 
 # 제조사명 통일
 MANUFACTURER_MAP = {
@@ -51,6 +53,35 @@ def seed_data():
     )
     print(f"{len(df)}건 적재 완료")
 
+def seed_data2():
+    """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
+    df = pd.read_csv(DATA_PATH2)
+    engine = get_engine()
+    df.to_sql(
+        name="faq",
+        con=engine,
+        if_exists="append",
+        index=False,
+        method="multi",
+        chunksize=1000,
+    )
+    print(f"{len(df)}건 적재 완료")
+
+def seed_data3():
+    """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
+    df = pd.read_csv(DATA_PATH3)
+    engine = get_engine()
+    df.to_sql(
+        name="news",
+        con=engine,
+        if_exists="append",
+        index=False,
+        method="multi",
+        chunksize=1000,
+    )
+    print(f"{len(df)}건 적재 완료")
 
 if __name__ == "__main__":
     seed_data()
+    seed_data2()
+    seed_data3()

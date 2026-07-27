@@ -2,7 +2,6 @@ import os
 import sys
 import streamlit as st
 import plotly.express as px
-
 from db.db_utils import get_news, count_news
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -64,7 +63,6 @@ with col4:
     st.metric(label="제휴 서비스센터 수", value="3,820 곳", delta="전국 커버")
 
 st.markdown("---")
-
 # 5. 3개 핵심 영역 카드
 col_recall, col_news, col_center = st.columns(3)
 

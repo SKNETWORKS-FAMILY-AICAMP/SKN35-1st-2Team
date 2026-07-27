@@ -39,10 +39,11 @@ USE car_recall;
 
 SHOW tables;
 
-DROP DATABASE car_car_recall;
+DROP DATABASE car_recall;
 
 CREATE DATABASE car_recall;
 
+SHOW DATABASES;
 
 
 

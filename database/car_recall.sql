@@ -30,3 +30,27 @@ SELECT
 FROM information_schema.tables
 WHERE table_schema = 'car_recall'
 GROUP BY table_schema;
+
+SELECT DATABASE();
+
+SHOW DATABASES;
+
+USE car_recall;
+
+SHOW tables;
+
+DROP DATABASE car_car_recall;
+
+CREATE DATABASE car_recall;
+
+
+
+
+
+
+
+
+
+
+
+

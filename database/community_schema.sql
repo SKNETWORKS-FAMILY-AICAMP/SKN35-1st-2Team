@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS posts (
     created_at VARCHAR(30) COMMENT '작성일시',
     updated_at VARCHAR(30) COMMENT '수정일시',
     likes INT DEFAULT 0 COMMENT '공감(좋아요) 수',
-
+	views INT DEFAULT 0,
     INDEX idx_brand (brand),
     INDEX idx_category (category),
     INDEX idx_created_at (created_at)
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS comments (
     author VARCHAR(50) COMMENT '작성자 닉네임',
     content TEXT NOT NULL COMMENT '댓글 본문',
     created_at VARCHAR(30) COMMENT '작성일시',
-
+	password
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
     INDEX idx_post_id (post_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,12 +1,14 @@
-import pandas as pd
-
 from db.database import get_db_connection
 
 ALL_LABEL = "전체"
 
 
+# 시/도 리스트 조회
+
+
 def get_sido_list():
     conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
     sql = """
         SELECT DISTINCT sido_name
@@ -15,12 +17,17 @@ def get_sido_list():
         ORDER BY sido_name
     """
 
-    df = pd.read_sql(sql, conn)
+    cursor.execute(sql)
 
+    result = [row["sido_name"] for row in cursor.fetchall()]
+
+    cursor.close()
     conn.close()
 
-    # 맨 앞에 "전체"를 추가해서 전국 검색을 선택할 수 있게 함
-    return [ALL_LABEL] + df["sido_name"].tolist()
+    return [ALL_LABEL] + result
+
+
+# 시/군/구 리스트 조회
 
 
 def get_sigungu_list(sido):
@@ -29,6 +36,7 @@ def get_sigungu_list(sido):
         return [ALL_LABEL]
 
     conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
     sql = """
         SELECT DISTINCT sigungu_name
@@ -38,37 +46,45 @@ def get_sigungu_list(sido):
         ORDER BY sigungu_name
     """
 
-    df = pd.read_sql(sql, conn, params=(sido,))
+    cursor.execute(sql, (sido,))
+
+    sigungu_list = [row["sigungu_name"] for row in cursor.fetchall()]
 
     conn.close()
-
-    sigungu_list = (
-        df["sigungu_name"]
-        .str.replace(r"([가-힣]+시)([가-힣]+구)", r"\1 \2", regex=True)
-        .tolist()
-    )
+    cursor.close()
 
     # 맨 앞에 "전체"를 추가해서 해당 시/도 전체를 선택할 수 있게 함
     return [ALL_LABEL] + sigungu_list
 
 
+# 제조사 리스트 조회
+
+
 def get_manufacturer_list():
     conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
     sql = """
         SELECT *
         FROM manufacturer
     """
 
-    df = pd.read_sql(sql, conn)
+    cursor.execute(sql)
+
+    result = cursor.fetchall()
 
     conn.close()
+    cursor.close()
 
-    return df["name"].tolist()
+    return [row["name"] for row in result]
+
+
+# 조건에 일치하는 서비스 센터 리스트 조회
 
 
 def get_service_centers(company, sido=None, sigungu=None):
     conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
     conditions = ["m.name = %s"]
     params = [company]
@@ -99,12 +115,15 @@ def get_service_centers(company, sido=None, sigungu=None):
         ORDER BY sc.name
     """
 
-    df = pd.read_sql(
-        sql,
-        conn,
-        params=tuple(params),
-    )
+    cursor.execute(sql, tuple(params))
+
+    result = cursor.fetchall()
+
+    for row in result:
+        row["latitude"] = float(row["latitude"]) if row["latitude"] else None
+        row["longitude"] = float(row["longitude"]) if row["longitude"] else None
 
     conn.close()
+    cursor.close()
 
-    return df
+    return result

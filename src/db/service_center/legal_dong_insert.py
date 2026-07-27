@@ -16,7 +16,7 @@ engine = create_engine(
 
 
 def insert_legal_dong():
-    csv_path = Path("data/국토교통부_전국 법정동_20260630.csv")
+    csv_path = Path("data/service_center/국토교통부_전국 법정동_20260630.csv")
 
     df = pd.read_csv(
         csv_path,

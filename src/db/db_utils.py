@@ -74,7 +74,7 @@ def init_db():
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     """)
     
-    # 마이그레이션 안전장치 (기존 posts 테이블에 컬럼이 없는 경우 추가)
+    # 마이그레이션 안전장치 (기존 posts 테이블 컬럼 조율)
     try:
         cur.execute("ALTER TABLE posts ADD COLUMN manufacturer_id INT")
     except Exception:
@@ -87,6 +87,17 @@ def init_db():
 
     try:
         cur.execute("ALTER TABLE posts ADD COLUMN views INT DEFAULT 0")
+    except Exception:
+        pass
+
+    # 레거시 brand, model 컬럼 감지 시 삭제 (최종 DDL 동기화)
+    try:
+        cur.execute("ALTER TABLE posts DROP COLUMN brand")
+    except Exception:
+        pass
+
+    try:
+        cur.execute("ALTER TABLE posts DROP COLUMN model")
     except Exception:
         pass
 
@@ -352,8 +363,8 @@ def get_posts(brand_filter=None, category_filter=None, keyword=None, sort_by="�
             p.updated_at,
             COALESCE(p.likes, 0) AS likes,
             COALESCE(p.views, 0) AS views,
-            COALESCE(m.name, p.brand, '') AS brand,
-            COALESCE(cm.name, p.model, '') AS model
+            COALESCE(m.name, '') AS brand,
+            COALESCE(cm.name, '') AS model
         FROM posts p
         LEFT JOIN manufacturer m ON p.manufacturer_id = m.id
         LEFT JOIN car_model cm ON p.car_model_id = cm.id
@@ -424,8 +435,8 @@ def get_post(post_id):
             p.updated_at,
             COALESCE(p.likes, 0) AS likes,
             COALESCE(p.views, 0) AS views,
-            COALESCE(m.name, p.brand, '') AS brand,
-            COALESCE(cm.name, p.model, '') AS model
+            COALESCE(m.name, '') AS brand,
+            COALESCE(cm.name, '') AS model
         FROM posts p
         LEFT JOIN manufacturer m ON p.manufacturer_id = m.id
         LEFT JOIN car_model cm ON p.car_model_id = cm.id
@@ -570,7 +581,7 @@ def get_news_sources():
 
 
 def get_news(keyword=None, source_filter=None, sort_by="최신순"):
-    """키워드 검색, 언론사/출처 필터, 정렬 조건(최신순/오래된순)에 맞춰 뉴스 목록 조회"""
+    """키워드 검색(제목+요약), 언론사/출처 필터, 정렬 조건(최신순/오래된순)에 맞춰 뉴스 목록 조회"""
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
     query = "SELECT * FROM news WHERE 1=1"
@@ -581,11 +592,11 @@ def get_news(keyword=None, source_filter=None, sort_by="최신순"):
         query += " AND source = %s"
         params.append(source_filter)
         
-    # 뉴스 제목 키워드 검색
+    # 뉴스 제목 및 요약 키워드 검색
     if keyword and str(keyword).strip():
         kw = f"%{str(keyword).strip()}%"
-        query += " AND title LIKE %s"
-        params.append(kw)
+        query += " AND (title LIKE %s OR summary LIKE %s)"
+        params.extend([kw, kw])
 
     # 정렬 방식 지정 (최신순 / 오래된순)
     if sort_by == "오래된순":
@@ -611,8 +622,8 @@ def count_news(keyword=None, source_filter=None):
         params.append(source_filter)
     if keyword and str(keyword).strip():
         kw = f"%{str(keyword).strip()}%"
-        query += " AND title LIKE %s"
-        params.append(kw)
+        query += " AND (title LIKE %s OR summary LIKE %s)"
+        params.extend([kw, kw])
 
     cur.execute(query, params)
     row = cur.fetchone()

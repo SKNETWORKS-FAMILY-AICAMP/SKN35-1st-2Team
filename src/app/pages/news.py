@@ -81,18 +81,32 @@ st.markdown(
         color: inherit !important;
         margin-bottom: 4px;
     }
-    /* 뉴스 본문 카드 요약 상자 */
+    /* 뉴스 본문 카드 요약 외곽 상자 */
     .news-summary-box {
-        font-size: 15px;
-        line-height: 1.6;
-        color: inherit !important;
         background-color: rgba(128, 128, 128, 0.1) !important;
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        padding: 12px 16px;
-        border-radius: 6px;
-        margin: 10px 0;
+        padding: 12px 16px !important;
+        border-radius: 6px !important;
+        margin: 10px 0 !important;
+        overflow: hidden !important;
     }
-    .news-summary-box mark {
+
+    /* 뉴스 본문 카드 요약 2줄 제한 텍스트 (패딩 0으로 3번째 줄 유출 차단) */
+    .news-summary-text {
+        font-size: 14.5px !important;
+        line-height: 1.4em !important;
+        max-height: 2.8em !important; /* 1.4em * 2줄 = 정확히 2.8em */
+        color: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        word-break: break-all !important;
+    }
+    .news-summary-text mark {
         color: #111111 !important;
     }
 
@@ -116,6 +130,9 @@ st.markdown(
             color: #ffffff !important;
             background-color: rgba(255, 255, 255, 0.08) !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+        .news-summary-text {
+            color: #ffffff !important;
         }
         .news-title {
             color: #e2e8f0 !important;
@@ -316,7 +333,7 @@ else:
             highlighted_summary = highlight_text(summary_txt, keyword)
             st.markdown(
                 f'<div class="news-summary-box">'
-                f'{highlighted_summary}'
+                f'<p class="news-summary-text">{highlighted_summary}</p>'
                 f'</div>',
                 unsafe_allow_html=True
             )

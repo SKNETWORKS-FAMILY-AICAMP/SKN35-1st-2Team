@@ -8,7 +8,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_PATH = BASE_DIR / "data" / "recall_data.csv"
 DATA_PATH2 = BASE_DIR / "data" / "car_faq.csv"
-DATA_PATH3 = BASE_DIR / "crawled" / "recall_news_english_columns.csv"
+DATA_PATH3 = BASE_DIR / "crawled" / "recall_news_news_schema.csv"
 
 # 제조사명 통일
 MANUFACTURER_MAP = {
@@ -74,12 +74,12 @@ def seed_data3():
     df.to_sql(
         name="news",
         con=engine,
-        if_exists="append",
+        if_exists="replace",
         index=False,
         method="multi",
         chunksize=1000,
     )
-    print(f"{len(df)}건 적재 완료")
+    print(f"{len(df)}건 뉴스 적재 완료")
 
 
 if __name__ == "__main__":

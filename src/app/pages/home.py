@@ -1,7 +1,9 @@
+import os
+import sys
 import streamlit as st
 import plotly.express as px
 
-import sys
+from db.db_utils import get_news, count_news
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
@@ -18,6 +20,12 @@ prev = trend_df.iloc[-2]
 
 recall_diff = latest["리콜건수"] - prev["리콜건수"]
 vehicle_diff = latest["리콜대상차량수"] - prev["리콜대상차량수"]
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 # 1. 페이지 기본 설정
 st.set_page_config(
@@ -49,10 +57,9 @@ with col2:
         delta=f"{vehicle_diff:+,}대",
         delta_color="inverse"
     )
-# 민하님 여기에 25년도 6월 이후의 뉴스들? 총 몇개 인지 가져오는 함수 해주시면 될 것 같아요
 with col3:
-    st.metric(label="25년 자동차 주요 뉴스", value="18 건", delta="새 소식 3건")
-# 찬룡님 서비스 센터 몇 개 인지 가져오는 함수로 해주시면 될 것 같습니다
+    total_news_count = count_news()
+    st.metric(label="자동차 주요 뉴스", value=f"{total_news_count} 건", delta="실시간 동기화")
 with col4:
     st.metric(label="제휴 서비스센터 수", value="3,820 곳", delta="전국 커버")
 
@@ -74,15 +81,19 @@ with col_recall:
             st.switch_page("pages/Chart.py")
 
 with col_news:
-    st.markdown("### 📰 25년 자동차 뉴스")
+    st.markdown("### 📰 최근 리콜 뉴스")
     with st.container(border=True):
-        st.markdown("📌 **[단독] 국토부, 전기차 배터리 안전 기준 대폭 강화**")
-        st.caption("2시간 전 · 오토타임즈")
-        st.markdown("📌 **내 주위 가장 저렴한 정비소 찾는 꿀팁 3가지**")
-        st.caption("5시간 전 · 모터그래프")
-        st.markdown("📌 **수입차 브랜드, 하반기 무상점검 캠페인 실시**")
-        st.caption("1일 전 · 카이즈유")
-        if st.button("📰 자동차 뉴스 더보기", key="btn_news"):
+        recent_news = get_news()[:3]
+        if not recent_news:
+            st.caption("등록된 최신 뉴스가 없습니다.")
+        else:
+            for news in recent_news:
+                raw_title = news['title'] or ""
+                display_title = raw_title[:12] + "..." if len(raw_title) > 12 else raw_title
+                st.markdown(f"**{news['source'] or '국토교통부'}** | {display_title}")
+                st.caption(f"보도일자: {news['published_at']}")
+
+        if st.button("자동차 뉴스 더보기 ➔", key="btn_news"):
             st.switch_page("pages/news.py")
 
 with col_center:

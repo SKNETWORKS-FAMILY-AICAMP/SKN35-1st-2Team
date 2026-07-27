@@ -34,12 +34,160 @@ def highlight_text(text: str, keyword: str) -> str:
     )
 
 
-# 1. 페이지 기본 설정
-st.set_page_config(page_title="소식", page_icon="📰", layout="wide")
+# 1. 페이지 기본 설정 및 다크모드 대응 커스텀 CSS
+st.set_page_config(page_title="News", layout="wide")
+
+st.markdown(
+    """
+    <style>
+    /* 상단 '뉴스 상세 확인하기' 링크 버튼 (Streamlit 기본 마크다운 <a> 스타일 완전 오버라이드) */
+    a.news-link-btn,
+    div[data-testid="stMarkdownContainer"] a.news-link-btn,
+    .stMarkdown a.news-link-btn,
+    a.news-link-btn:hover,
+    a.news-link-btn:focus,
+    a.news-link-btn:active {
+        text-decoration: none !important;
+    }
+    a.news-link-btn,
+    div[data-testid="stMarkdownContainer"] a.news-link-btn,
+    .stMarkdown a.news-link-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+        padding: 7px 16px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.2s ease !important;
+    }
+    a.news-link-btn:hover,
+    div[data-testid="stMarkdownContainer"] a.news-link-btn:hover {
+        background-color: #f8f9fa !important;
+        color: #111827 !important;
+        border-color: #c1c7d0 !important;
+        text-decoration: none !important;
+    }
+
+    .news-title {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.4;
+        color: inherit !important;
+        margin-bottom: 4px;
+    }
+    /* 뉴스 본문 카드 요약 상자 */
+    .news-summary-box {
+        font-size: 15px;
+        line-height: 1.6;
+        color: inherit !important;
+        background-color: rgba(128, 128, 128, 0.1) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin: 10px 0;
+    }
+    .news-summary-box mark {
+        color: #111111 !important;
+    }
+
+    /* 다크모드 대응 (OS/브라우저 및 Streamlit 설정 다크 테마 지원) */
+    @media (prefers-color-scheme: dark) {
+        a.news-link-btn,
+        div[data-testid="stMarkdownContainer"] a.news-link-btn,
+        .stMarkdown a.news-link-btn {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+            box-shadow: none !important;
+        }
+        a.news-link-btn:hover,
+        div[data-testid="stMarkdownContainer"] a.news-link-btn:hover {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+        .news-summary-box {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+        .news-title {
+            color: #e2e8f0 !important;
+        }
+        div[data-testid="stCaptionContainer"],
+        div[data-testid="stCaptionContainer"] * {
+            color: #cbd5e1 !important;
+        }
+    }
+
+    [data-theme="dark"] a.news-link-btn,
+    .stApp[data-theme="dark"] a.news-link-btn,
+    [data-testid="stAppViewContainer"][data-theme="dark"] a.news-link-btn,
+    div[data-testid="stMarkdownContainer"][data-theme="dark"] a.news-link-btn,
+    .stApp.dark a.news-link-btn,
+    body.dark a.news-link-btn,
+    html.dark a.news-link-btn {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #333333 !important;
+        box-shadow: none !important;
+    }
+    [data-theme="dark"] a.news-link-btn:hover,
+    .stApp[data-theme="dark"] a.news-link-btn:hover,
+    [data-testid="stAppViewContainer"][data-theme="dark"] a.news-link-btn:hover {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+    }
+
+    /* 하단 페이징 버튼 */
+    div[class*="st-key-p_"] button,
+    div[class*="st-key-p_"] button *,
+    div[class*="st-key-p_"] button p {
+        font-size: 13px !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        overflow: visible !important;
+    }
+    div[class*="st-key-p_first"] button,
+    div[class*="st-key-p_prev"] button,
+    div[class*="st-key-p_next"] button,
+    div[class*="st-key-p_last"] button,
+    div[class*="st-key-p_first"] button *,
+    div[class*="st-key-p_prev"] button *,
+    div[class*="st-key-p_next"] button *,
+    div[class*="st-key-p_last"] button * {
+        font-size: 11.5px !important;
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
-# 2. 상단 헤더
-st.title("📰 소식")
+# 2. 상단 헤더 및 뉴스 상세 이동 버튼 (우측 정렬)
+st.markdown(
+    """
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 6px;">
+        <h1 style="margin: 0; padding: 0; font-size: 2.2rem; font-weight: 700; color: var(--text-color, inherit); white-space: nowrap; line-height: 1;">News</h1>
+        <a href="https://www.car.go.kr/sd/newsDta/list.do" target="_blank" rel="noopener noreferrer" class="news-link-btn">
+           뉴스 상세 확인하기 
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.write("자동차 리콜·결함 관련 최신 뉴스를 한눈에 확인해 보세요.")
 
 # 3. 검색 필터 세션 상태 초기화 (페이지 이동 후 복귀 시 100% 필터 유지)
@@ -75,21 +223,21 @@ source_idx = available_sources.index(st.session_state["saved_news_source"]) if s
 sort_options = ["최신순", "오래된순"]
 sort_idx = sort_options.index(st.session_state["saved_news_sort"]) if st.session_state["saved_news_sort"] in sort_options else 0
 
-col1, col2, col3 = st.columns([2.5, 1.2, 1])
+col1, col2, col3, col4, col5 = st.columns([1.1, 2.5, 0.9, 0.75, 0.75])
 with col1:
-    st.text_input(
-        "검색어",
-        value=st.session_state["saved_news_keyword"],
-        placeholder="뉴스 제목으로 검색",
-        key="news_keyword",
-        on_change=sync_news_filters,
-    )
-with col2:
     st.selectbox(
         "언론사/출처",
         available_sources,
         index=source_idx,
         key="news_source",
+        on_change=sync_news_filters,
+    )
+with col2:
+    st.text_input(
+        "검색어",
+        value=st.session_state["saved_news_keyword"],
+        placeholder="뉴스 제목으로 검색",
+        key="news_keyword",
         on_change=sync_news_filters,
     )
 with col3:
@@ -100,14 +248,14 @@ with col3:
         key="news_sort",
         on_change=sync_news_filters,
     )
-
-_, btn_col1, btn_col2 = st.columns([4, 1, 1])
-with btn_col1:
-    st.button("초기화", use_container_width=True, on_click=reset_news_filters)
-with btn_col2:
+with col4:
+    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
     if st.button("🔍 검색", type="primary", use_container_width=True):
         sync_news_filters()
         st.rerun()
+with col5:
+    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+    st.button("초기화", use_container_width=True, on_click=reset_news_filters)
 
 
 # 5. 현재 검색 조건 변수 할당
@@ -153,7 +301,7 @@ else:
             top_c1, top_c2 = st.columns([4, 1.2])
             with top_c1:
                 highlighted_title = highlight_text(news['title'], keyword)
-                st.markdown(f"### {highlighted_title}", unsafe_allow_html=True)
+                st.markdown(f'<div class="news-title">{highlighted_title}</div>', unsafe_allow_html=True)
             with top_c2:
                 st.markdown(
                     f'<div style="text-align: right; color: #1c7ed6; font-size: 14px; font-weight: 600;">'
@@ -167,29 +315,29 @@ else:
             summary_txt = news["summary"] or "요약 정보가 없습니다."
             highlighted_summary = highlight_text(summary_txt, keyword)
             st.markdown(
-                f'<div style="font-size: 15px; line-height: 1.6; color: #444; background-color: #f8f9fa; padding: 12px 16px; border-radius: 6px; margin: 10px 0;">'
+                f'<div class="news-summary-box">'
                 f'{highlighted_summary}'
                 f'</div>',
                 unsafe_allow_html=True
             )
 
-            col_link, _ = st.columns([2, 5])
-            with col_link:
-                st.link_button("🔗 원문 보도자료 읽기 ↗", news["url"], use_container_width=True)
 
 st.divider()
 
-# 9. 페이지 인디케이터 (50% 너비 구역 안 5-block 네비게이션)
+# 9. 페이지 인디케이터
 block_index = (current_page - 1) // PAGE_BLOCK_SIZE
 block_start_page = block_index * PAGE_BLOCK_SIZE + 1
 block_end_page = block_start_page + PAGE_BLOCK_SIZE - 1
+valid_pages = list(range(block_start_page, min(block_end_page, total_pages) + 1))
 
 def go_page(p):
     st.session_state["news_page"] = p
 
-_, center_page_col, _ = st.columns([1, 2, 1])
+_, center_page_col, _ = st.columns([0.6, 2.8, 0.6])
 with center_page_col:
-    p_cols = st.columns(PAGE_BLOCK_SIZE + 4)
+    # 축소된 네비게이션 버튼 0.95 비율, 숫자 버튼 0.8 비율
+    col_weights = [0.95, 0.95] + [0.8] * len(valid_pages) + [0.95, 0.95]
+    p_cols = st.columns(col_weights)
 
     # 1. 맨 첫 페이지 이동 버튼
     with p_cols[0]:
@@ -197,32 +345,30 @@ with center_page_col:
             go_page(1)
             st.rerun()
 
-    # 2. 이전 블록 이동 버튼
+    # 2. 이전 페이지 이동 버튼
     with p_cols[1]:
-        prev_target = max(1, block_start_page - 1)
-        if st.button("◀ 이전", key="p_prev", use_container_width=True, disabled=(block_start_page == 1)):
+        prev_target = max(1, current_page - 1)
+        if st.button("◀ 이전", key="p_prev", use_container_width=True, disabled=(current_page == 1)):
             go_page(prev_target)
             st.rerun()
 
-    # 3. 5개 번호 버튼 (유효범위 지나면 disabled)
-    for i in range(PAGE_BLOCK_SIZE):
-        p_num = block_start_page + i
-        with p_cols[2 + i]:
+    # 3. 데이터가 존재하는 유효한 페이지 번호 버튼만 표시
+    for idx, p_num in enumerate(valid_pages):
+        with p_cols[2 + idx]:
             btn_type = "primary" if p_num == current_page else "secondary"
-            is_disabled = p_num > total_pages
-            if st.button(str(p_num), key=f"p_btn_{p_num}", type=btn_type, use_container_width=True, disabled=is_disabled):
+            if st.button(str(p_num), key=f"p_btn_{p_num}", type=btn_type, use_container_width=True):
                 go_page(p_num)
                 st.rerun()
 
-    # 4. 다음 블록 이동 버튼
-    with p_cols[2 + PAGE_BLOCK_SIZE]:
-        next_target = min(total_pages, block_end_page + 1)
-        if st.button("다음 ▶", key="p_next", use_container_width=True, disabled=(block_end_page >= total_pages)):
+    # 4. 다음 페이지 이동 버튼
+    with p_cols[2 + len(valid_pages)]:
+        next_target = min(total_pages, current_page + 1)
+        if st.button("다음 ▶", key="p_next", use_container_width=True, disabled=(current_page == total_pages)):
             go_page(next_target)
             st.rerun()
 
     # 5. 맨 마지막 페이지 이동 버튼
-    with p_cols[3 + PAGE_BLOCK_SIZE]:
+    with p_cols[3 + len(valid_pages)]:
         if st.button("마지막 »", key="p_last", use_container_width=True, disabled=(current_page == total_pages)):
             go_page(total_pages)
             st.rerun()

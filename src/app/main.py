@@ -82,11 +82,11 @@ page2 = st.Page("pages/search.py", title="Search", icon="🔍")
 
 page3 = st.Page("pages/FAQ.py", title="FAQ", icon="❓")
 
-page4 = st.Page("pages/news.py", title="소식", icon="📰")
+page4 = st.Page("pages/news.py", title="News", icon="📰")
 
 page5 = st.Page("pages/service_center.py", title="Service Center", icon="🗺️")
 
-page6 = st.Page("pages/community.py", title="소통공간", icon="💬")
+page6 = st.Page("pages/community.py", title="Community", icon="💬")
 
 page7 = st.Page("pages/create_page.py", title="글작성")
 

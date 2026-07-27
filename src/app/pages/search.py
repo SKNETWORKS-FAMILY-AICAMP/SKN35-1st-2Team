@@ -72,7 +72,7 @@ elif st.session_state.get("search_result") is not None:
         st.subheader("검색 결과 (0건)")
         st.warning("검색 결과가 없습니다.")
     else:
-        # ── 공통 스타일 (요약 카드 + 리콜 카드) — 카드 크기와 글자 크기 비율 맞춤 ──
+        # ── 공통 스타일 (요약 카드 + 리콜 카드) ──
         st.markdown(
             """
             <style>
@@ -113,7 +113,6 @@ elif st.session_state.get("search_result") is not None:
                     position: relative;
                     background: #ffffff;
                     border: 1px solid #ececec;
-                    border-left: 5px solid var(--brand-color, #999);
                     border-radius: 12px;
                     padding: 16px 20px;
                     margin-bottom: 12px;
@@ -137,7 +136,6 @@ elif st.session_state.get("search_result") is not None:
                 }
                 .brand-badge {
                     display: inline-block;
-                    background: var(--brand-color, #999);
                     color: #ffffff;
                     font-size: 12px;
                     font-weight: 700;
@@ -175,9 +173,6 @@ elif st.session_state.get("search_result") is not None:
                     display: flex;
                     gap: 8px;
                 }
-                .recall-reason-icon {
-                    font-size: 14px;
-                }
                 .recall-reason-text {
                     font-size: 13px;
                     line-height: 1.6;
@@ -188,16 +183,17 @@ elif st.session_state.get("search_result") is not None:
             unsafe_allow_html=True,
         )
 
-        # ── 브랜드별 포인트 컬러 ──
-        brand_colors = {
-            "현대": "#0072ce",
-            "기아": "#bb162b",
-            "벤츠": "#5a5a5a",
-            "BMW": "#1c3f94",
-            "폭스바겐": "#00437a",
+        # ── 브랜드별 포인트 컬러 (main/dark 2톤) ──
+        BRAND_COLORS = {
+            "현대": {"main": "#00AAD2", "dark": "#00728C"},
+            "기아": {"main": "#BB162B", "dark": "#8C0F20"},
+            "벤츠": {"main": "#1A1A1A", "dark": "#000000"},
+            "BMW": {"main": "#0066B1", "dark": "#003D6B"},
+            "폭스바겐": {"main": "#001E50", "dark": "#000E28"},
         }
+        DEFAULT_BRAND_COLOR = {"main": "#7c7c7c", "dark": "#5a5a5a"}
 
-        # ── 상단 요약 통계 카드 (홈 화면 스타일) ──
+        # ── 상단 요약 통계 카드 ──
         total_count = len(df)
         total_recall_qty = int(df["리콜대수"].sum()) if "리콜대수" in df.columns else 0
         brand_count = df["제작자"].nunique() if "제작자" in df.columns else 0
@@ -209,45 +205,45 @@ elif st.session_state.get("search_result") is not None:
                 <div class="stat-card">
                     <div class="stat-label">검색된 리콜 건수</div>
                     <div class="stat-value">{total_count}건</div>
-                    <div class="stat-sub">🔎 조건 일치</div>
+                    <div class="stat-sub">조건 일치</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">총 리콜 대상 차량</div>
                     <div class="stat-value">{total_recall_qty:,}대</div>
-                    <div class="stat-sub">📊 합계</div>
+                    <div class="stat-sub">합계</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">관련 브랜드 수</div>
                     <div class="stat-value">{brand_count}개</div>
-                    <div class="stat-sub">🏷️ 브랜드</div>
+                    <div class="stat-sub">브랜드</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">가장 최근 리콜일</div>
                     <div class="stat-value" style="font-size:20px;">{latest_date}</div>
-                    <div class="stat-sub">🕒 최신순</div>
+                    <div class="stat-sub">최신순</div>
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        st.markdown(f"#### 📋 상세 리콜 목록 ({total_count}건)")
+        st.markdown(f"#### 상세 리콜 목록 ({total_count}건)")
 
         for _, row in df.iterrows():
             brand = row.get("제작자", "-")
-            color = brand_colors.get(brand, "#7c7c7c")
+            colors = BRAND_COLORS.get(brand, DEFAULT_BRAND_COLOR)
             recall_count_display = (
                 f"{int(row['리콜대수']):,}대" if pd.notna(row.get("리콜대수")) else "-"
             )
             st.markdown(
                 f"""
-                <div class="recall-card" style="--brand-color: {color};">
+                <div class="recall-card" style="border-left: 5px solid; border-image: linear-gradient(180deg, {colors['main']}, {colors['dark']}) 1;">
                     <div class="recall-card-header">
                         <div class="recall-title-wrap">
-                            <span class="brand-badge">{brand}</span>
+                            <span class="brand-badge" style="background: {colors['main']};">{brand}</span>
                             <span class="recall-title">{row.get('차명', '-')}</span>
                         </div>
-                        <div class="recall-count-badge">🚗 {recall_count_display}</div>
+                        <div class="recall-count-badge">{recall_count_display}</div>
                     </div>
                     <div class="recall-info-grid">
                         <div class="recall-info-item">
@@ -260,7 +256,6 @@ elif st.session_state.get("search_result") is not None:
                         </div>
                     </div>
                     <div class="recall-reason-box">
-                        <div class="recall-reason-icon">⚠️</div>
                         <div class="recall-reason-text">{row.get('리콜사유', '-')}</div>
                     </div>
                 </div>
@@ -269,7 +264,7 @@ elif st.session_state.get("search_result") is not None:
             )
 
         st.download_button(
-            label="⬇ CSV로 다운로드",
+            label="CSV로 다운로드",
             data=df.to_csv(index=False).encode("utf-8-sig"),
             file_name="recall_search_result.csv",
             mime="text/csv",

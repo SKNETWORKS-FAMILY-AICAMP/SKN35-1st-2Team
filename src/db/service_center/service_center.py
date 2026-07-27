@@ -52,37 +52,58 @@ def get_sigungu_list(sido):
     return [ALL_LABEL] + sigungu_list
 
 
+def get_manufacturer_list():
+    conn = get_db_connection()
+
+    sql = """
+        SELECT *
+        FROM manufacturer
+    """
+
+    df = pd.read_sql(sql, conn)
+
+    conn.close()
+
+    return df["name"].tolist()
+
+
 def get_service_centers(company, sido=None, sigungu=None):
     conn = get_db_connection()
 
-    conditions = ["company = %s"]
+    conditions = ["m.name = %s"]
     params = [company]
 
-    # 시/도가 "전체"가 아닐 때만 조건을 추가 (전국 검색 지원)
+    # 시/도가 "전체"가 아닐 때만 조건 추가
     if sido and sido != ALL_LABEL:
-        conditions.append("address LIKE CONCAT(%s, '%%')")
+        conditions.append("sc.address LIKE CONCAT(%s, '%%')")
         params.append(sido)
 
-    # 시/군/구가 "전체"가 아닐 때만 조건을 추가 (시/도까지만 검색 지원)
+    # 시/군/구가 "전체"가 아닐 때만 조건 추가
     if sigungu and sigungu != ALL_LABEL:
-        conditions.append("address LIKE CONCAT('%%', %s, '%%')")
+        conditions.append("sc.address LIKE CONCAT('%%', %s, '%%')")
         params.append(sigungu)
 
     where_clause = " AND ".join(conditions)
-    print("where_clause : ", where_clause)
+
     sql = f"""
         SELECT
-            name,
-            address,
-            phone,
-            latitude,
-            longitude
-        FROM service_center
+            sc.name,
+            sc.address,
+            sc.phone,
+            sc.latitude,
+            sc.longitude
+        FROM service_center sc
+        JOIN manufacturer m
+            ON sc.manufacturer_id = m.id
         WHERE {where_clause}
-        ORDER BY name
+        ORDER BY sc.name
     """
 
-    df = pd.read_sql(sql, conn, params=tuple(params))
+    df = pd.read_sql(
+        sql,
+        conn,
+        params=tuple(params),
+    )
 
     conn.close()
 

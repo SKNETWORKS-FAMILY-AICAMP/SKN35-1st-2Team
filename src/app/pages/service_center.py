@@ -6,6 +6,7 @@ import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
 from db.service_center.service_center import (
+    get_manufacturer_list,
     get_service_centers,
     get_sido_list,
     get_sigungu_list,
@@ -796,7 +797,11 @@ with st.container(border=True):
         )
 
     with col_company:
-        brand_keys = list(BRAND_COLORS.keys())
+        print(
+            "++_+_+_+_+_+_+_+_+flweijfsjfgl;kashfgk;asefjhlasekjflaise++_+_+_+_+_+_+_+_+ : ",
+            get_manufacturer_list(),
+        )
+        brand_keys = get_manufacturer_list()
         default_index = (
             brand_keys.index(applied_company) if applied_company in brand_keys else 0
         )

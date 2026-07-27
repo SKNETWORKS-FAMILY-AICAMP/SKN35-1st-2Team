@@ -244,7 +244,6 @@ def parse_service_center(raw_data):
                 "phone": format_phone(get_service_phone(data)),
                 "latitude": coordinates.get("latitude"),
                 "longitude": coordinates.get("longitude"),
-                "company": "벤츠",
             }
         )
 

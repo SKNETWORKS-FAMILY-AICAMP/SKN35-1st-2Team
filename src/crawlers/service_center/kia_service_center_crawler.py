@@ -91,7 +91,6 @@ def parse_service_center(raw_data):
                 "name": item.get("poiName"),
                 "address": item.get("addr"),
                 "phone": format_phone(item.get("telNo")),
-                "company": "기아",
             }
         )
 

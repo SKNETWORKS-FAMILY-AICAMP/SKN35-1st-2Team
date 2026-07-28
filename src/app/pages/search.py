@@ -30,14 +30,7 @@ brand_name_dict = {
     "BMW": "BMW",
     "폭스바겐": "Volkswagen",
 }
-# 검색 함수만 import 해오기
-from db.chart.refind_data import search_recall
 
-st.set_page_config(page_title="Search", layout="wide")
-
-st.title("자동차 리콜·결함 정보 검색")
-st.caption("차종 · 기업 · 결함 안전등급을 검색해보세요")
-st.subheader("조건 검색")
 
 def hex_to_rgba(hex_color: str, alpha: float) -> str:
     hex_color = hex_color.lstrip("#")
@@ -50,6 +43,7 @@ def hex_to_rgba(hex_color: str, alpha: float) -> str:
 # ==========================
 st.set_page_config(page_title="Search", layout="wide")
 
+# 조회 버튼 누르기 전과 후의 조건을 분리 관리 (service_center.py와 동일한 패턴)
 if "applied_manufacturer" not in st.session_state:
     st.session_state["applied_manufacturer"] = "전체"
 
@@ -77,6 +71,9 @@ st.markdown(
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
 
+    /* ==========================================
+    [1. 테마 변수]
+    ========================================== */
     :root {{
         --accent: {ACCENT};
         --accent-dark: {ACCENT_DARK};
@@ -94,6 +91,9 @@ st.markdown(
         background-color: var(--canvas);
     }}
 
+    /* ==========================================
+    [2. 셀렉트박스 & 인풋 스타일]
+    ========================================== */
     div[data-testid="stSelectbox"] div[data-baseweb="select"],
     div[data-baseweb="base-input"],
     div[data-testid="stTextInput"] input {{
@@ -263,6 +263,26 @@ st.markdown(
     div.stButton > button:active,
     div[data-testid="stFormSubmitButton"] > button:active {{
         transform: translateY(0px);
+    }}
+
+    .dirty-hint {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--accent);
+        text-align: center;
+        margin-top: 0.55rem;
+        letter-spacing: 0.01em;
+    }}
+    .st-key-apply_btn_dirty {{
+        border-color: var(--accent) !important;
+    }}
+    .st-key-apply_btn_dirty div.stButton > button {{
+        animation: pulse-glow 1.6s ease-in-out infinite;
+    }}
+    @keyframes pulse-glow {{
+        0%, 100% {{ box-shadow: 0 4px 12px var(--accent-soft-strong); }}
+        50% {{ box-shadow: 0 4px 22px var(--accent-soft-strong), 0 0 0 6px var(--accent-soft); }}
     }}
 
     /* ---------- 결과 요약 바 ---------- */

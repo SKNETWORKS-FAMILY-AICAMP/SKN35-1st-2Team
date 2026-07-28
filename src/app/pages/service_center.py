@@ -85,6 +85,11 @@ st.markdown(
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
 
+    /* ==========================================
+    [1. 테마 변수]
+    config.toml(base="light")로 테마가 고정되어 있으므로
+    여기서는 다크모드 방어용 !important 없이 색상 변수만 정의.
+    ========================================== */
     :root {{
         --accent: {ACCENT};
         --accent-dark: {ACCENT_DARK};
@@ -97,12 +102,74 @@ st.markdown(
         --canvas: #F6F8FB;
     }}
 
-    html, body, [class*="css"] {{
+    html, body, [class*="css"], .stApp {{
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--canvas);
     }}
 
-    .stApp {{
-        background: var(--canvas);
+    /* ==========================================
+    [2. 셀렉트박스 & 인풋 스타일]
+    BaseWeb 컴포넌트 기본 스타일을 덮어쓰기 위한 것으로,
+    특이도 문제 때문에 !important가 필요함(다크모드와는 무관).
+    ========================================== */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"],
+    div[data-baseweb="base-input"] {{
+        background-color: var(--canvas) !important;
+        color: var(--ink) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 9px !important;
+        box-shadow: none !important;
+    }}
+
+    /* 셀렉트박스 호버 시 테두리 액센트 컬러 */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover {{
+        border-color: var(--accent) !important;
+    }}
+
+    /* 셀렉트박스 텍스트 & 아이콘 색상 */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] * {{
+        color: var(--ink) !important;
+        fill: var(--ink) !important;
+    }}
+
+    /* 셀렉트박스 라벨(제목) 글자색 */
+    div[data-testid="stSelectbox"] label p {{
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        line-height: 1.15rem !important;
+        letter-spacing: 0.01em;
+        color: var(--ink-soft) !important;
+        text-transform: uppercase;
+    }}
+
+    /* 드롭다운 메뉴 팝업 (클릭 시 나오는 전체 리스트) */
+    div[data-baseweb="popover"] ul[data-baseweb="menu"],
+    ul[data-testid="stSelectboxVirtualDropdown"] {{
+        background-color: var(--surface) !important;
+        border-color: var(--line) !important;
+    }}
+
+    /* 드롭다운 개별 옵션 아이템 */
+    li[data-baseweb="option"] {{
+        background-color: var(--surface) !important;
+        color: var(--ink) !important;
+    }}
+
+    li[data-baseweb="option"]:hover,
+    li[data-baseweb="option"][aria-selected="true"] {{
+        background-color: {ACCENT_SOFT} !important;
+        color: var(--ink) !important;
+    }}
+
+    /* 비활성화된 셀렉트박스(시/군/구 미선택 시) */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"][aria-disabled="true"] {{
+        background-color: #EEF1F5 !important;
+        border: 1px dashed #CBD5E1 !important;
+        cursor: not-allowed !important;
+    }}
+    div[data-testid="stSelectbox"] div[data-baseweb="select"][aria-disabled="true"] * {{
+        color: #94A3B8 !important;
+        fill: #94A3B8 !important;
     }}
 
     .block-container {{
@@ -118,7 +185,7 @@ st.markdown(
         justify-content: space-between;
         margin-bottom: 1.6rem;
         padding-bottom: 1.4rem;
-        border-bottom: 1px solid var(--line);
+        border-bottom: 1px solid #E7EAF0;
     }}
     .main-header .eyebrow {{
         font-family: 'JetBrains Mono', monospace;
@@ -144,12 +211,12 @@ st.markdown(
         font-family: 'Manrope', sans-serif;
         font-size: 2.05rem !important;
         font-weight: 800 !important;
-        color: var(--ink);
+        color: #0F172A !important;
         margin: 0 0 0.35rem 0;
         letter-spacing: -0.03em;
     }}
     .main-header p {{
-        color: var(--ink-soft);
+        color: #64748B !important;
         font-size: 0.94rem;
         margin: 0;
     }}
@@ -157,7 +224,7 @@ st.markdown(
         font-family: 'JetBrains Mono', monospace;
         font-weight: 700;
         font-size: 0.85rem;
-        color: #fff;
+        color: #FFFFFF !important;
         background: var(--accent);
         padding: 0.55rem 1.05rem;
         border-radius: 999px;
@@ -166,43 +233,6 @@ st.markdown(
         transition: all 0.25s ease;
     }}
 
-    /* ---------- 셀렉트박스 ---------- */
-    div[data-testid="stWidgetLabel"] {{
-        min-height: 1.15rem;
-        margin-bottom: 0.4rem !important;
-        display: flex;
-        align-items: center;
-    }}
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] {{
-        background: var(--canvas) !important;
-        border: 1px solid var(--line) !important;
-        border-radius: 9px !important;
-        min-height: 2.7rem !important;
-        display: flex !important;
-        align-items: center !important;
-        transition: all 0.15s ease;
-    }}
-    div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover {{
-        border-color: var(--accent) !important;
-    }}
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] div {{
-        background: transparent !important;
-    }}
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] * {{
-        color: var(--ink) !important;
-        fill: var(--ink) !important;
-        opacity: 1 !important;
-    }}
-    div[data-testid="stSelectbox"] label p {{
-        font-size: 0.76rem !important;
-        font-weight: 700 !important;
-        line-height: 1.15rem !important;
-        letter-spacing: 0.01em;
-        color: var(--ink-soft) !important;
-        text-transform: uppercase;
-    }}
-    /* 조회 버튼 위에 셀렉트박스 라벨과 정확히 같은 크기의 투명 자리를 만들어
-       버튼 컨트롤이 셀렉트박스 컨트롤과 같은 줄에 오게 함 */
     .field-label-spacer {{
         min-height: 1.15rem;
         margin-bottom: 0.4rem;
@@ -214,36 +244,14 @@ st.markdown(
         visibility: hidden;
         user-select: none;
     }}
-    /* 비활성화된 셀렉트(시/도="전체"일 때 시/군/구)는 명확하게 흐리게 처리 */
-    div[data-testid="stSelectbox"] div[data-baseweb="select"][aria-disabled="true"] {{
-        background: #EEF1F5 !important;
-        border-style: dashed !important;
-        cursor: not-allowed !important;
-    }}
-    div[data-testid="stSelectbox"] div[data-baseweb="select"][aria-disabled="true"] * {{
-        color: var(--ink-soft) !important;
-        fill: var(--ink-soft) !important;
-    }}
-    ul[data-testid="stSelectboxVirtualDropdown"] {{
-        background: var(--surface) !important;
-    }}
-    ul[data-testid="stSelectboxVirtualDropdown"] li {{
-        color: var(--ink) !important;
-        background: var(--surface) !important;
-    }}
-    ul[data-testid="stSelectboxVirtualDropdown"] li:hover {{
-        background: var(--accent-soft) !important;
-    }}
 
     /* ---------- 필터 패널 / 카드 ---------- */
     div[data-testid="stVerticalBlockBorderWrapper"] {{
-        background: var(--surface);
-        border: 1px solid var(--line) !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E7EAF0 !important;
         border-radius: 14px !important;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
     }}
-    /* 필터 패널 안 4개 컬럼(시/도·시/군/구·제조사·조회버튼) 사이에
-       구분선을 넣어 같은 줄에 있다는 느낌을 강하게 줌 */
     div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"] {{
         padding: 0 0.85rem;
         display: flex;
@@ -257,34 +265,34 @@ st.markdown(
         padding-right: 0.1rem;
     }}
     div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"]:not(:last-child) {{
-        border-right: 1px solid var(--line);
+        border-right: 1px solid #E7EAF0;
     }}
 
-    /* ---------- 조회 버튼 ---------- */
+    /* ---------- 버튼 ---------- */
     div.stButton > button {{
         width: 100% !important;
-        background: var(--accent);
-        color: white;
+        background: var(--accent) !important;
+        color: #FFFFFF !important;
         border-radius: 9px;
         height: 2.7rem;
         font-weight: 700;
         font-size: 0.95rem;
-        border: none;
+        border: none !important;
         transition: all 0.15s ease-in-out;
         margin-top: 0;
         box-shadow: 0 4px 12px var(--accent-soft-strong);
         letter-spacing: -0.01em;
     }}
     div.stButton > button:hover {{
-        background: var(--accent-dark);
-        color: white;
+        background: var(--accent-dark) !important;
+        color: #FFFFFF !important;
         transform: translateY(-1px);
         box-shadow: 0 8px 18px var(--accent-soft-strong);
     }}
     div.stButton > button:active {{
         transform: translateY(0px);
     }}
-    /* 변경사항이 있는데 아직 "조회하기"를 안 누른 상태를 시각적으로 표시 */
+
     .dirty-hint {{
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.68rem;
@@ -310,21 +318,21 @@ st.markdown(
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: var(--surface);
-        border: 1px solid var(--line);
-        border-left: 4px solid var(--accent);
+        background: #FFFFFF !important;
+        border: 1px solid #E7EAF0 !important;
+        border-left: 4px solid var(--accent) !important;
         border-radius: 10px;
         padding: 0.85rem 1.2rem;
         margin-top: 1.0rem;
         margin-bottom: 1.1rem;
         font-size: 0.92rem;
-        color: var(--ink);
+        color: #0F172A !important;
     }}
     .result-bar .result-location {{
-        color: var(--ink-soft);
+        color: #64748B !important;
     }}
     .result-bar .result-location b {{
-        color: var(--ink);
+        color: #0F172A !important;
         font-weight: 700;
     }}
     .result-bar .result-count {{
@@ -337,18 +345,18 @@ st.markdown(
         font-family: 'Inter', sans-serif;
         font-size: 0.85rem;
         font-weight: 500;
-        color: var(--ink-soft);
+        color: #64748B !important;
         margin-left: 0.15rem;
     }}
 
     /* ---------- 빈 상태 ---------- */
     .empty-state {{
-        background: var(--surface);
-        border: 1px dashed var(--line);
+        background: #FFFFFF !important;
+        border: 1px dashed #E7EAF0 !important;
         border-radius: 14px;
         padding: 3rem 1.5rem;
         text-align: center;
-        color: var(--ink-soft);
+        color: #64748B !important;
         font-size: 0.95rem;
     }}
     .empty-state .empty-icon {{
@@ -797,10 +805,6 @@ with st.container(border=True):
         )
 
     with col_company:
-        print(
-            "++_+_+_+_+_+_+_+_+flweijfsjfgl;kashfgk;asefjhlasekjflaise++_+_+_+_+_+_+_+_+ : ",
-            get_manufacturer_list(),
-        )
         brand_keys = get_manufacturer_list()
         default_index = (
             brand_keys.index(applied_company) if applied_company in brand_keys else 0

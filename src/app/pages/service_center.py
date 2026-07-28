@@ -566,7 +566,6 @@ def render_map_and_list(df, accent, accent_dark, search_token):
         border-radius: 3px;
     }}
 
-    /* ---------- 지도 인포윈도우 ---------- */
     .info-card {{
         padding: 14px 16px;
         width: 250px;
@@ -619,7 +618,9 @@ def render_map_and_list(df, accent, accent_dark, search_token):
         border: 1px solid #E2E8F0;
     }}
 </style>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}&autoload=false"></script>
+
+<!-- HTTPS 및 카카오 SDK 동기식 로딩으로 변경 -->
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}"></script>
 </head>
 <body>
 
@@ -633,175 +634,178 @@ def render_map_and_list(df, accent, accent_dark, search_token):
 </div>
 
 <script>
-kakao.maps.load(function () {{
-
-    var data = {location_json};
-    var accentColor = "{accent}";
-
-    var container = document.getElementById("map");
-
-    var options = {{
-        center: new kakao.maps.LatLng(36.5, 127.8),
-        level: 12
-    }};
-
-    var map = new kakao.maps.Map(container, options);
-
-    var bounds = new kakao.maps.LatLngBounds();
-    var activeInfoWindow = null;
-    var activeCardEl = null;
-    var markers = [];
-    var infoWindows = [];
-    var validMarkerCount = 0;
-
-    var markerImage = new kakao.maps.MarkerImage(
-        "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">' +
-            '<path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 25 17 25s17-12.3 17-25C34 7.6 26.4 0 17 0z" fill="' + accentColor + '"/>' +
-            '<circle cx="17" cy="17" r="7" fill="#fff"/>' +
-            '</svg>'
-        ),
-        new kakao.maps.Size(34, 42),
-        {{
-            offset: new kakao.maps.Point(17, 42)
-        }}
-    );
-
-    function openInfo(idx) {{
-        if (activeInfoWindow) {{
-            activeInfoWindow.close();
-        }}
-
-        var marker = markers[idx];
-        var info = infoWindows[idx];
-
-        if (!marker || !info) {{
-            return;
-        }}
-
-        info.open(map, marker);
-        activeInfoWindow = info;
+function initMap() {{
+    if (typeof kakao === 'undefined' || !kakao.maps) {{
+        console.error("Kakao Maps SDK가 로드되지 않았습니다.");
+        return;
     }}
 
-    function highlightCard(idx) {{
-        if (activeCardEl) {{
-            activeCardEl.classList.remove("active");
-        }}
+    kakao.maps.load(function () {{
+        var data = {location_json};
+        var accentColor = "{accent}";
 
-        var el = document.querySelector('.center-card[data-index="' + idx + '"]');
+        var container = document.getElementById("map");
 
-        if (el) {{
-            el.classList.add("active");
-            activeCardEl = el;
-        }}
-    }}
+        var options = {{
+            center: new kakao.maps.LatLng(36.5, 127.8),
+            level: 12
+        }};
 
-    function focusCenter(idx) {{
+        var map = new kakao.maps.Map(container, options);
 
-        var marker = markers[idx];
+        var bounds = new kakao.maps.LatLngBounds();
+        var activeInfoWindow = null;
+        var activeCardEl = null;
+        var markers = [];
+        var infoWindows = [];
+        var validMarkerCount = 0;
 
-        if (!marker) {{
-            return;
-        }}
+        var markerImage = new kakao.maps.MarkerImage(
+            "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">' +
+                '<path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 25 17 25s17-12.3 17-25C34 7.6 26.4 0 17 0z" fill="' + accentColor + '"/>' +
+                '<circle cx="17" cy="17" r="7" fill="#fff"/>' +
+                '</svg>'
+            ),
+            new kakao.maps.Size(34, 42),
+            {{
+                offset: new kakao.maps.Point(17, 42)
+            }}
+        );
 
-        var pos = marker.getPosition();
+        function openInfo(idx) {{
+            if (activeInfoWindow) {{
+                activeInfoWindow.close();
+            }}
 
-        map.setLevel(3);
+            var marker = markers[idx];
+            var info = infoWindows[idx];
 
-        setTimeout(function () {{
-            map.panTo(pos);
-            openInfo(idx);
-            highlightCard(idx);
-        }}, 100);
-    }}
-
-    window.focusCenter = focusCenter;
-
-    setTimeout(function () {{
-
-        map.relayout();
-
-        data.forEach(function (center, idx) {{
-
-            var lat = parseFloat(center.위도);
-            var lng = parseFloat(center.경도);
-
-            if (
-                isNaN(lat) ||
-                isNaN(lng) ||
-                lat < 33 ||
-                lat > 39 ||
-                lng < 124 ||
-                lng > 132
-            ) {{
-                markers.push(null);
-                infoWindows.push(null);
+            if (!marker || !info) {{
                 return;
             }}
 
-            var position = new kakao.maps.LatLng(lat, lng);
-
-            var marker = new kakao.maps.Marker({{
-                map: map,
-                position: position,
-                image: markerImage
-            }});
-
-            var directionsUrl =
-                "https://map.kakao.com/link/search/" +
-                center.주소 +
-                " " +
-                center.센터명;
-
-            var content = `
-                <div class="info-card">
-                    <div class="info-title">${{center.센터명}}</div>
-                    <div class="info-addr">${{center.주소}}</div>
-                    <div class="info-actions">
-                        <a href="tel:${{center.전화번호}}" class="info-phone">
-                            📞 ${{center.전화번호}}
-                        </a>
-                        <a href="${{directionsUrl}}" target="_blank" class="info-direction">
-                            🧭 길찾기
-                        </a>
-                    </div>
-                </div>
-            `;
-
-            var info = new kakao.maps.InfoWindow({{
-                content: content,
-                removable: true
-            }});
-
-            kakao.maps.event.addListener(marker, "click", function () {{
-                openInfo(idx);
-                highlightCard(idx);
-            }});
-
-            markers.push(marker);
-            infoWindows.push(info);
-
-            bounds.extend(position);
-            validMarkerCount++;
-
-        }});
-
-        if (validMarkerCount > 0) {{
-
-            if (validMarkerCount === 1) {{
-                map.setCenter(bounds.getSouthWest());
-                map.setLevel(4);
-            }} else {{
-                map.setBounds(bounds);
-            }}
-
+            info.open(map, marker);
+            activeInfoWindow = info;
         }}
 
-        map.relayout();
+        function highlightCard(idx) {{
+            if (activeCardEl) {{
+                activeCardEl.classList.remove("active");
+            }}
 
-    }}, 60);
+            var el = document.querySelector('.center-card[data-index="' + idx + '"]');
 
-}});
+            if (el) {{
+                el.classList.add("active");
+                activeCardEl = el;
+            }}
+        }}
+
+        function focusCenter(idx) {{
+            var marker = markers[idx];
+
+            if (!marker) {{
+                return;
+            }}
+
+            var pos = marker.getPosition();
+
+            map.setLevel(3);
+
+            setTimeout(function () {{
+                map.panTo(pos);
+                openInfo(idx);
+                highlightCard(idx);
+            }}, 100);
+        }}
+
+        window.focusCenter = focusCenter;
+
+        setTimeout(function () {{
+            map.relayout();
+
+            data.forEach(function (center, idx) {{
+                var lat = parseFloat(center.위도);
+                var lng = parseFloat(center.경도);
+
+                if (
+                    isNaN(lat) ||
+                    isNaN(lng) ||
+                    lat < 33 ||
+                    lat > 39 ||
+                    lng < 124 ||
+                    lng > 132
+                ) {{
+                    markers.push(null);
+                    infoWindows.push(null);
+                    return;
+                }}
+
+                var position = new kakao.maps.LatLng(lat, lng);
+
+                var marker = new kakao.maps.Marker({{
+                    map: map,
+                    position: position,
+                    image: markerImage
+                }});
+
+                var directionsUrl =
+                    "https://map.kakao.com/link/search/" +
+                    center.주소 +
+                    " " +
+                    center.센터명;
+
+                var content = `
+                    <div class="info-card">
+                        <div class="info-title">${{center.센터명}}</div>
+                        <div class="info-addr">${{center.주소}}</div>
+                        <div class="info-actions">
+                            <a href="tel:${{center.전화번호}}" class="info-phone">
+                                📞 ${{center.전화번호}}
+                            </a>
+                            <a href="${{directionsUrl}}" target="_blank" class="info-direction">
+                                🧭 길찾기
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                var info = new kakao.maps.InfoWindow({{
+                    content: content,
+                    removable: true
+                }});
+
+                kakao.maps.event.addListener(marker, "click", function () {{
+                    openInfo(idx);
+                    highlightCard(idx);
+                }});
+
+                markers.push(marker);
+                infoWindows.push(info);
+
+                bounds.extend(position);
+                validMarkerCount++;
+            }});
+
+            if (validMarkerCount > 0) {{
+                if (validMarkerCount === 1) {{
+                    map.setCenter(bounds.getSouthWest());
+                    map.setLevel(4);
+                }} else {{
+                    map.setBounds(bounds);
+                }}
+            }}
+
+            map.relayout();
+        }}, 100);
+    }});
+}}
+
+window.addEventListener('DOMContentLoaded', initMap);
+if (document.readyState === 'complete' || document.readyState === 'interactive') {{
+    initMap();
+}}
 </script>
 
 </body>

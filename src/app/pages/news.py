@@ -79,13 +79,13 @@ st.markdown(
     font-size: 22px;
     font-weight: 800;
     line-height: 1.4;
-    color: var(--text-color, inherit) !important;
+    color: #111827 !important;
     margin-bottom: 4px;
     letter-spacing: -0.02em;
     }
     /* 뉴스 본문 카드 요약 외곽 상자 */
     .news-summary-box {
-    background: var(--secondary-background-color, #FFFFFF) !important;
+    background: #FFFFFF !important;
     border: 1px solid #E7EAF0 !important;
     padding: 12px 16px !important;
     border-radius: 10px !important;
@@ -94,73 +94,21 @@ st.markdown(
 
     /* 뉴스 본문 카드 요약 2줄 제한 텍스트 (패딩 0으로 3번째 줄 유출 차단) */
     .news-summary-text {
-        font-size: 14.5px !important;
-        line-height: 1.4em !important;
-        max-height: 2.8em !important; /* 1.4em * 2줄 = 정확히 2.8em */
-        color: var(--text-color, #1F2937) !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: -webkit-box !important;
-        -webkit-line-clamp: 2 !important;
-        -webkit-box-orient: vertical !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        word-break: break-all !important;
+    font-size: 14.5px !important;
+    line-height: 1.4em !important;
+    max-height: 2.8em !important;
+    color: #1F2937 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: break-all !important;
     }
     .news-summary-text mark {
         color: #111111 !important;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .news-title {
-            color: #FFFFFF !important;
-        }
-        .news-summary-box {
-            background: #1E293B !important;
-            border-color: #334155 !important;
-        }
-        .news-summary-text {
-            color: #E2E8F0 !important;
-        }
-    }
-
-    [data-theme="dark"] .news-title,
-    .stApp[data-theme="dark"] .news-title,
-    [data-testid="stAppViewContainer"][data-theme="dark"] .news-title {
-        color: #FFFFFF !important;
-    }
-
-    [data-theme="dark"] .news-summary-box,
-    .stApp[data-theme="dark"] .news-summary-box,
-    [data-testid="stAppViewContainer"][data-theme="dark"] .news-summary-box {
-        background: #1E293B !important;
-        border-color: #334155 !important;
-    }
-
-    [data-theme="dark"] .news-summary-text,
-    .stApp[data-theme="dark"] .news-summary-text,
-    [data-testid="stAppViewContainer"][data-theme="dark"] .news-summary-text {
-        color: #E2E8F0 !important;
-    }
-
-    [data-theme="dark"] a.news-link-btn,
-    .stApp[data-theme="dark"] a.news-link-btn,
-    [data-testid="stAppViewContainer"][data-theme="dark"] a.news-link-btn,
-    div[data-testid="stMarkdownContainer"][data-theme="dark"] a.news-link-btn,
-    .stApp.dark a.news-link-btn,
-    body.dark a.news-link-btn,
-    html.dark a.news-link-btn {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 1px solid #333333 !important;
-        box-shadow: none !important;
-    }
-    [data-theme="dark"] a.news-link-btn:hover,
-    .stApp[data-theme="dark"] a.news-link-btn:hover,
-    [data-testid="stAppViewContainer"][data-theme="dark"] a.news-link-btn:hover {
-        background-color: #1a1a1a !important;
-        color: #ffffff !important;
-        text-decoration: none !important;
     }
 
     /* 하단 페이징 버튼 */

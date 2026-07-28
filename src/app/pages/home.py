@@ -32,10 +32,173 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ==========================
+# 디자인 토큰 (service_center.py와 동일한 기본 액센트)
+# ==========================
+DEFAULT_ACCENT = {"main": "#2563EB", "dark": "#1D4ED8"}
+ACCENT = DEFAULT_ACCENT["main"]
+ACCENT_DARK = DEFAULT_ACCENT["dark"]
+
+
+def hex_to_rgba(hex_color: str, alpha: float) -> str:
+    hex_color = hex_color.lstrip("#")
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {alpha})"
+
+
+ACCENT_SOFT = hex_to_rgba(ACCENT, 0.08)
+ACCENT_SOFT_STRONG = hex_to_rgba(ACCENT, 0.16)
+
+# ==========================
+# Custom CSS
+# ==========================
+st.markdown(
+    f"""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+    :root {{
+        --accent: {ACCENT};
+        --accent-dark: {ACCENT_DARK};
+        --accent-soft: {ACCENT_SOFT};
+        --accent-soft-strong: {ACCENT_SOFT_STRONG};
+        --ink: #0F172A;
+        --ink-soft: #64748B;
+        --line: #E7EAF0;
+        --surface: #FFFFFF;
+        --canvas: #F6F8FB;
+    }}
+
+    html, body, [class*="css"], .stApp {{
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--canvas);
+    }}
+
+    .block-container {{
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1360px;
+    }}
+
+    /* ---------- Hero ---------- */
+    .hero-eyebrow {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 0.55rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }}
+    .hero-eyebrow::before {{
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+    }}
+    .hero-title {{
+        font-family: 'Manrope', sans-serif;
+        font-size: 2.3rem;
+        font-weight: 800;
+        color: var(--ink);
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.03em;
+    }}
+    .hero-sub {{
+        color: var(--ink-soft);
+        font-size: 1.02rem;
+        margin: 0 0 1.5rem 0;
+    }}
+    .section-divider {{
+        border: none;
+        border-top: 1px solid var(--line);
+        margin: 1.6rem 0;
+    }}
+
+    /* ---------- Metric 카드 ---------- */
+    div[data-testid="stMetric"] {{
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }}
+    div[data-testid="stMetricLabel"] {{
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        color: var(--ink-soft) !important;
+    }}
+    div[data-testid="stMetricValue"] {{
+        font-family: 'Manrope', sans-serif;
+        color: var(--ink) !important;
+        font-weight: 800 !important;
+    }}
+
+    /* ---------- 3분할 카드 패널 ---------- */
+    div[data-testid="stVerticalBlockBorderWrapper"] {{
+        background: var(--surface) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }}
+    .section-title {{
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: 0.7rem;
+        letter-spacing: -0.01em;
+    }}
+
+    /* ---------- 버튼 ---------- */
+    div.stButton > button {{
+        width: 100% !important;
+        background: var(--accent) !important;
+        color: #FFFFFF !important;
+        border-radius: 9px;
+        height: 2.7rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: none !important;
+        transition: all 0.15s ease-in-out;
+        box-shadow: 0 4px 12px var(--accent-soft-strong);
+        letter-spacing: -0.01em;
+    }}
+    div.stButton > button:hover {{
+        background: var(--accent-dark) !important;
+        color: #FFFFFF !important;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px var(--accent-soft-strong);
+    }}
+
+    /* ---------- 하단 안내 문구 ---------- */
+    .footer-caption {{
+        color: var(--ink-soft);
+        font-size: 0.82rem;
+        text-align: center;
+    }}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
 # 3. Hero 섹션
-st.title("🚗 안전한 드라이빙의 시작, 차모아")
-st.subheader("우리 차, 지금 리콜 대상인지 3초 만에 확인하세요.")
-st.markdown("---")
+st.markdown(
+    """
+    <div class="hero-eyebrow">CarMoa Dashboard</div>
+    <div class="hero-title">🚗 안전한 드라이빙의 시작, 차모아</div>
+    <div class="hero-sub">우리 차, 지금 리콜 대상인지 3초 만에 확인하세요.</div>
+    """,
+    unsafe_allow_html=True,
+)
+st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # 4. 핵심 대시보드 지표
 col1, col2, col3, col4 = st.columns(4)
@@ -69,12 +232,12 @@ with col4:
         delta="전국 커버",
     )
 
-st.markdown("---")
+st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 # 5. 3개 핵심 영역 카드
 col_recall, col_news, col_center = st.columns(3)
 
 with col_recall:
-    st.markdown("### 🚨 최근 리콜 현황")
+    st.markdown('<div class="section-title">🚨 최근 리콜 현황</div>', unsafe_allow_html=True)
     with st.container(border=True):
         for _, row in recent_df.iterrows():
             st.markdown(f"**{row['제조사']}** | {row['차명']}")
@@ -84,7 +247,7 @@ with col_recall:
             st.switch_page("pages/Chart.py")
 
 with col_news:
-    st.markdown("### 📰 최근 리콜 뉴스")
+    st.markdown('<div class="section-title">📰 최근 리콜 뉴스</div>', unsafe_allow_html=True)
     with st.container(border=True):
         recent_news = get_news()
         if not recent_news:
@@ -93,7 +256,7 @@ with col_news:
             for news in recent_news:
                 raw_title = news["title"] or ""
                 display_title = (
-                    raw_title[:25] + "..." if len(raw_title) > 25 else raw_title
+                    raw_title[:23] + "..." if len(raw_title) > 23 else raw_title
                 )
                 st.markdown(f"**{news['source'] or '국토교통부'}** | {display_title}")
                 st.caption(f"보도일자 : {news['date']}")
@@ -102,7 +265,7 @@ with col_news:
             st.switch_page("pages/news.py")
 
 with col_center:
-    st.markdown("### 📍 내 근처 서비스센터")
+    st.markdown('<div class="section-title">📍 내 근처 서비스센터</div>', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown("🛠️ **블루핸즈 역삼점** (0.8km)")
         st.caption("서울 강남구 테헤란로 | ⭐️ 4.8 (리뷰 120)")
@@ -114,7 +277,9 @@ with col_center:
             st.switch_page("pages/service_center.py")
 
 # 6. 하단 안내 문구
-st.markdown("---")
-st.caption(
-    "© 2026 CarMoa Inc. 본 서비스에서 제공하는 리콜 정보는 공공데이터포털 및 국토교통부 데이터를 기반으로 제작되었습니다."
+st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+st.markdown(
+    '<p class="footer-caption">© 2026 CarMoa Inc. 본 서비스에서 제공하는 리콜 정보는 '
+    '공공데이터포털 및 국토교통부 데이터를 기반으로 제작되었습니다.</p>',
+    unsafe_allow_html=True,
 )

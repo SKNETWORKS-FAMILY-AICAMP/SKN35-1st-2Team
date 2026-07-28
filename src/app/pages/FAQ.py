@@ -6,7 +6,25 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-st.set_page_config(page_title="FAQ",layout="wide")
+st.set_page_config(page_title="FAQ", layout="wide")
+
+# =========================================================
+# 디자인 토큰 (service_center.py와 동일한 기본 액센트)
+# =========================================================
+DEFAULT_ACCENT = {"main": "#2563EB", "dark": "#1D4ED8"}
+ACCENT = DEFAULT_ACCENT["main"]
+ACCENT_DARK = DEFAULT_ACCENT["dark"]
+
+
+def hex_to_rgba(hex_color: str, alpha: float) -> str:
+    hex_color = hex_color.lstrip("#")
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {alpha})"
+
+
+ACCENT_SOFT = hex_to_rgba(ACCENT, 0.08)
+ACCENT_SOFT_STRONG = hex_to_rgba(ACCENT, 0.16)
+
 # =========================================================
 # 기본 설정
 # =========================================================
@@ -220,54 +238,146 @@ def format_answer(text: str) -> str:
 
 
 # =========================================================
-# 페이지 스타일
+# 페이지 스타일 (service_center.py와 동일한 디자인 토큰)
 # =========================================================
 st.markdown(
-    """
+    f"""
     <style>
-    html {
-        scroll-behavior: smooth;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
 
-    #faq-top {
+    :root {{
+        --accent: {ACCENT};
+        --accent-dark: {ACCENT_DARK};
+        --accent-soft: {ACCENT_SOFT};
+        --accent-soft-strong: {ACCENT_SOFT_STRONG};
+        --ink: #0F172A;
+        --ink-soft: #64748B;
+        --line: #E7EAF0;
+        --surface: #FFFFFF;
+        --canvas: #F6F8FB;
+    }}
+
+    html, body, [class*="css"], .stApp {{
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--canvas);
+    }}
+
+    .block-container {{
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1360px;
+    }}
+
+    html {{
+        scroll-behavior: smooth;
+    }}
+
+    #faq-top {{
         scroll-margin-top: 80px;
-    }
+    }}
 
-    [data-testid="stAppViewContainer"] {
+    [data-testid="stAppViewContainer"] {{
         scroll-behavior: smooth;
-    }
+    }}
+
+    /* ---------- 헤더 ---------- */
+    .main-header {{
+        margin-bottom: 0.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid var(--line);
+    }}
+    .main-header .eyebrow {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 0.55rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }}
+    .main-header .eyebrow::before {{
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+    }}
+    .main-header h1 {{
+        font-family: 'Manrope', sans-serif;
+        font-size: 2.05rem !important;
+        font-weight: 800 !important;
+        color: var(--ink) !important;
+        margin: 0 0 0.35rem 0;
+        letter-spacing: -0.03em;
+    }}
+    .main-header p {{
+        color: var(--ink-soft) !important;
+        font-size: 0.94rem;
+        margin: 0;
+    }}
+
+    /* 자동차 리콜센터 바로가기 버튼 */
+    a[data-testid="stBaseLinkButton"], div.stLinkButton > a {{
+        background: var(--accent) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        border-radius: 9px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px var(--accent-soft-strong) !important;
+        transition: all 0.15s ease-in-out !important;
+    }}
+    a[data-testid="stBaseLinkButton"]:hover, div.stLinkButton > a:hover {{
+        background: var(--accent-dark) !important;
+        color: #FFFFFF !important;
+        transform: translateY(-1px);
+    }}
 
     /* -------------------------------------------------- */
-    /* 질문 버튼 강제 왼쪽 정렬 스타일 */
+    /* 질문 버튼 (아코디언) 카드 스타일 */
     /* -------------------------------------------------- */
-    button[data-testid="stBaseButton-secondary"] {
+    button[data-testid="stBaseButton-secondary"] {{
         justify-content: flex-start !important;
         text-align: left !important;
-        padding: 0.6rem 1rem !important;
-    }
+        padding: 0.9rem 1.1rem !important;
+        background: var(--surface) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+        transition: all 0.15s ease !important;
+    }}
 
-    button[data-testid="stBaseButton-secondary"] > div {
+    button[data-testid="stBaseButton-secondary"]:hover {{
+        border-color: var(--accent) !important;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06) !important;
+    }}
+
+    button[data-testid="stBaseButton-secondary"] > div {{
         justify-content: flex-start !important;
         width: 100% !important;
-    }
+    }}
 
-    button[data-testid="stBaseButton-secondary"] p {
+    button[data-testid="stBaseButton-secondary"] p {{
         text-align: left !important;
         font-weight: 600 !important;
-        font-size: 1.15rem !important;     # Q. 글자 폰트 크기 설정
-    }
+        font-size: 1.05rem !important;
+        color: var(--ink) !important;
+    }}
 
     /* 답변 상자 스타일 */
-    .faq-answer-container {
+    .faq-answer-container {{
         padding: 1.2rem 1.5rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        border-left: 4px solid #ff4b4b;
-        margin-top: -0.2rem;
+        background-color: var(--canvas);
+        border-radius: 12px;
+        border-left: 4px solid var(--accent);
+        margin-top: -0.4rem;
         margin-bottom: 0.8rem;
-    }
+    }}
 
-    .faq-answer-box {
+    .faq-answer-box {{
         display: grid;
         grid-template-columns: 2rem minmax(0, 1fr);
         column-gap: 0.35rem;
@@ -275,54 +385,57 @@ st.markdown(
         line-height: 1.85;
         word-break: keep-all;
         overflow-wrap: break-word;
-    }
+    }}
 
-    .faq-answer-label {
+    .faq-answer-label {{
         font-weight: 700;
-        color: #ff4b4b;
-    }
+        color: var(--accent);
+    }}
 
-    .faq-answer-content {
+    .faq-answer-content {{
         min-width: 0;
-    }
+        color: var(--ink);
+    }}
 
-    .faq-normal-block {
+    .faq-normal-block {{
         margin-bottom: 1rem;
-    }
+    }}
 
-    .faq-subheading {
+    .faq-subheading {{
         margin: 0.9rem 0 0.5rem 0;
         font-weight: 700;
-    }
+    }}
 
-    .faq-numbered-item {
+    .faq-numbered-item {{
         display: grid;
         grid-template-columns: max-content minmax(0, 1fr);
         column-gap: 0.55rem;
         margin: 0.7rem 0;
         padding-left: 1rem;
-    }
+    }}
 
-    .faq-marker {
+    .faq-marker {{
         font-weight: 600;
         white-space: nowrap;
-    }
+        color: var(--accent-dark);
+    }}
 
-    .faq-item-content {
+    .faq-item-content {{
         min-width: 0;
-    }
+    }}
 
-    .faq-answer-content a {
+    .faq-answer-content a {{
         font-weight: 600;
+        color: var(--accent);
         text-decoration: none;
-    }
+    }}
 
-    .faq-answer-content a:hover {
+    .faq-answer-content a:hover {{
         text-decoration: underline;
-    }
+    }}
 
     /* TOP 버튼 */
-    .faq-top-button {
+    .faq-top-button {{
         position: fixed;
         right: 30px;
         bottom: 30px;
@@ -333,31 +446,31 @@ st.markdown(
         width: 52px;
         height: 52px;
         border-radius: 50%;
-        background: #ff4b4b;
+        background: var(--accent);
         color: white !important;
         font-size: 13px;
         font-weight: 700;
         text-decoration: none !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+        box-shadow: 0 6px 16px var(--accent-soft-strong);
         transition: transform 0.15s ease, background 0.15s ease;
-    }
+    }}
 
-    .faq-top-button:hover {
-        background: #e03b3b;
+    .faq-top-button:hover {{
+        background: var(--accent-dark);
         transform: translateY(-2px);
-    }
+    }}
 
-    @media (max-width: 700px) {
-        .faq-top-button {
+    @media (max-width: 700px) {{
+        .faq-top-button {{
             right: 18px;
             bottom: 18px;
             width: 48px;
             height: 48px;
-        }
-        .faq-numbered-item {
+        }}
+        .faq-numbered-item {{
             padding-left: 0.3rem;
-        }
-    }
+        }}
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -377,7 +490,15 @@ title_col, spacer_col, link_col = st.columns(
 )
 
 with title_col:
-    st.title("FAQ")
+    st.markdown(
+        """
+        <div class="main-header">
+            <div class="eyebrow">Frequently Asked</div>
+            <h1>FAQ</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 with link_col:
     st.link_button(

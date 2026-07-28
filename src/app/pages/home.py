@@ -256,7 +256,7 @@ with col_news:
             for news in recent_news:
                 raw_title = news["title"] or ""
                 display_title = (
-                    raw_title[:25] + "..." if len(raw_title) > 25 else raw_title
+                    raw_title[:23] + "..." if len(raw_title) > 23 else raw_title
                 )
                 st.markdown(f"**{news['source'] or '국토교통부'}** | {display_title}")
                 st.caption(f"보도일자 : {news['date']}")

@@ -30,7 +30,14 @@ brand_name_dict = {
     "BMW": "BMW",
     "폭스바겐": "Volkswagen",
 }
+# 검색 함수만 import 해오기
+from db.chart.refind_data import search_recall
 
+st.set_page_config(page_title="Search", layout="wide")
+
+st.title("자동차 리콜·결함 정보 검색")
+st.caption("차종 · 기업 · 결함 안전등급을 검색해보세요")
+st.subheader("조건 검색")
 
 def hex_to_rgba(hex_color: str, alpha: float) -> str:
     hex_color = hex_color.lstrip("#")

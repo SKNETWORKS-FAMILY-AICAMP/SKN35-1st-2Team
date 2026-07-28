@@ -103,6 +103,16 @@ st.markdown(
     /* 멀티셀렉트에서 선택된 기업 태그(pill) 컬러 */
     div[data-testid="stMultiSelect"] span[data-baseweb="tag"] {{
         background-color: var(--accent) !important;
+        color: #FFFFFF !important;
+    }}
+
+    /* 선택된 기업 이름 텍스트 색상 */
+    div[data-testid="stMultiSelect"] span[data-baseweb="tag"] span {{
+        color: #FFFFFF !important;
+    }}
+
+    div[data-testid="stMultiSelect"] span[data-baseweb="tag"] svg {{
+        fill: #FFFFFF !important;
     }}
 
     div[data-baseweb="popover"] ul[data-baseweb="menu"],

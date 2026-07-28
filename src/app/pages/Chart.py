@@ -89,11 +89,14 @@ if graph_type != "위험도":
             index=0
         )
 
+    # 시작년도보다 크거나 같은 년도만 표시
+    end_years = [year for year in years if year > start]
+
     with col2:
         end = st.selectbox(
             "종료년도",
-            years,
-            index=len(years) - 1
+            end_years,
+            index=len(end_years) - 1
         )
 
 st.divider()

@@ -1,9 +1,9 @@
 import pandas as pd
 from pathlib import Path
 
-from db.engine import get_engine
+from src.db.engine import get_engine
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 DATA_PATH = BASE_DIR / "crawled" / "news" / "recall_news_news_schema.csv"
 

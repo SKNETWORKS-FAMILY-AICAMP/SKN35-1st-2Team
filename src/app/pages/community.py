@@ -14,10 +14,10 @@ if ROOT_DIR not in sys.path:
 
 # 2. 모듈 핫 리로드 설정 (개발 중 db_utils 수정 사항 즉시 반영)
 import importlib
-import db.db_utils
-importlib.reload(db.db_utils)
+import src.db.news.db_utils
+importlib.reload(src.db.news.db_utils)
 
-from db.db_utils import (
+from src.db.news.db_utils import (
     get_posts, count_comments,
     BRANDS, CATEGORIES,
 )

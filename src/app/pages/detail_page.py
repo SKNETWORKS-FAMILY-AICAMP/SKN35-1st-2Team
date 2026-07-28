@@ -12,16 +12,16 @@ if ROOT_DIR not in sys.path:
 
 # 2. 모듈 핫 리로드 (db_utils 변경 사항 실시간 반영)
 import importlib
-import db.db_utils
-importlib.reload(db.db_utils)
+import src.db.news.db_utils
+importlib.reload(src.db.news.db_utils)
 
-from db.db_utils import (
+from src.db.news.db_utils import (
     get_post, like_post, unlike_post, get_comments, add_comment, increment_views,
     verify_comment_password, update_comment, delete_comment, verify_post_password, delete_post
 )
 
 # Streamlit 페이지 기본 설정
-st.set_page_config(page_title="게시글 상세", page_icon="📖", layout="wide")
+st.set_page_config(page_title="Detail Post", layout="wide")
 
 # 3. 세션 상태(st.session_state)에서 전달된 상세 게시글 ID 검증
 post_id = st.session_state.get("detail_post_id")

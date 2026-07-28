@@ -12,8 +12,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
-from src.services.geocoding import enrich_with_coords
-from src.services.phone_format import format_phone
+from src.utils.geocoding import enrich_with_coords
+from src.utils.phone_format import format_phone
 
 ROOT = Path(__file__).resolve().parents[3]
 

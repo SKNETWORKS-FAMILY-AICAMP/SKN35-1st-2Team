@@ -136,6 +136,28 @@ def extract_views(text: str) -> str:
     return match.group(1).replace(",", "")
 
 
+def split_title_content(text: str) -> tuple[str, str]:
+    """
+    링크 안의 텍스트를 제목과 내용으로 분리합니다.
+
+    자동차리콜센터 목록은 보통
+    '제목 □ 내용' 형태로 표시되므로 첫 번째 구분기호를 기준으로 나눕니다.
+    """
+
+    cleaned = clean_text(text)
+
+    # 사이트에서 사용될 수 있는 네모/불릿 계열 구분기호를 함께 처리
+    match = re.search(r"\s*[□■▪●◇◆]\s*", cleaned)
+
+    if not match:
+        return cleaned, ""
+
+    title = clean_text(cleaned[:match.start()])
+    content = clean_text(cleaned[match.end():])
+
+    return title, content
+
+
 # =========================================================
 # 4. 현재 페이지 번호 확인
 # =========================================================
@@ -247,7 +269,7 @@ def parse_news_block(block: Any, page_number: int) -> dict[str, str]:
 
     full_text = clean_text(block.get_text(" ", strip=True))
 
-    # 제목: 게시물 안에서 텍스트가 가장 긴 링크를 우선 사용합니다.
+    # 링크 텍스트에서 '제목 □ 내용'을 먼저 분리합니다.
     links = block.find_all("a")
     link_texts = [
         clean_text(link.get_text(" ", strip=True))
@@ -255,9 +277,14 @@ def parse_news_block(block: Any, page_number: int) -> dict[str, str]:
         if clean_text(link.get_text(" ", strip=True))
     ]
 
-    title = max(link_texts, key=len) if link_texts else ""
+    title = ""
+    content = ""
 
-    # 제목을 링크에서 찾지 못했을 때 제목 후보 태그 사용
+    if link_texts:
+        main_link_text = max(link_texts, key=len)
+        title, content = split_title_content(main_link_text)
+
+    # 링크에서 제목을 찾지 못했을 때 제목 후보 태그 사용
     if not title:
         for selector in [
             ".title",
@@ -270,9 +297,13 @@ def parse_news_block(block: Any, page_number: int) -> dict[str, str]:
             title_element = block.select_one(selector)
 
             if title_element:
-                title = clean_text(
+                candidate = clean_text(
                     title_element.get_text(" ", strip=True)
                 )
+                title, separated_content = split_title_content(candidate)
+
+                if separated_content and not content:
+                    content = separated_content
 
                 if title:
                     break
@@ -306,10 +337,14 @@ def parse_news_block(block: Any, page_number: int) -> dict[str, str]:
         date_position = full_text.find(published_at)
         before_date = full_text[:date_position].strip()
 
-        if title and before_date.startswith(title):
-            before_date = before_date[len(title):].strip()
+        # 제목뿐 아니라 분리된 내용도 제거한 뒤 작성자 후보를 찾습니다.
+        for remove_text in [title, content]:
+            if remove_text and before_date.startswith(remove_text):
+                before_date = before_date[len(remove_text):].strip()
+            elif remove_text:
+                before_date = before_date.replace(remove_text, " ", 1).strip()
 
-        # 날짜 직전의 마지막 짧은 문자열을 작성자 후보로 사용
+        before_date = re.sub(r"^[□■▪●◇◆]", "", before_date).strip()
         tokens = before_date.split()
 
         if tokens:
@@ -322,65 +357,57 @@ def parse_news_block(block: Any, page_number: int) -> dict[str, str]:
             ):
                 author = candidate
 
-    # 내용 추출
-    content = ""
+    # 링크에서 내용이 분리되지 않은 경우에만 별도 내용 태그를 찾습니다.
+    if not content:
+        content_selectors = [
+            ".content",
+            ".summary",
+            ".cont",
+            ".txt",
+            ".description",
+            "p",
+        ]
 
-    content_selectors = [
-        ".content",
-        ".summary",
-        ".cont",
-        ".txt",
-        ".description",
-        "p",
-    ]
+        for selector in content_selectors:
+            content_candidates = block.select(selector)
+            cleaned_candidates = []
 
-    for selector in content_selectors:
-        content_candidates = block.select(selector)
+            for element in content_candidates:
+                candidate_text = clean_text(
+                    element.get_text(" ", strip=True)
+                )
 
-        cleaned_candidates = []
+                if not candidate_text or candidate_text == title:
+                    continue
 
-        for element in content_candidates:
-            candidate_text = clean_text(
-                element.get_text(" ", strip=True)
-            )
+                _, separated_content = split_title_content(candidate_text)
+                if separated_content:
+                    candidate_text = separated_content
 
-            if not candidate_text:
-                continue
+                if published_at and candidate_text == published_at:
+                    continue
 
-            if candidate_text == title:
-                continue
+                if "조회수" in candidate_text and len(candidate_text) < 80:
+                    continue
 
-            if published_at and candidate_text == published_at:
-                continue
+                cleaned_candidates.append(candidate_text)
 
-            if "조회수" in candidate_text and len(candidate_text) < 80:
-                continue
+            if cleaned_candidates:
+                content = max(cleaned_candidates, key=len)
 
-            cleaned_candidates.append(candidate_text)
+                if len(content) >= 20:
+                    break
 
-        if cleaned_candidates:
-            content = max(cleaned_candidates, key=len)
-
-            if len(content) >= 30:
-                break
-
-    # 내용 선택자를 못 찾았을 때 전체 텍스트에서 메타정보를 제거
-    if not content or len(content) < 20:
+    # 그래도 내용을 못 찾았을 때 전체 텍스트에서 제목과 메타정보를 제거
+    if not content:
         content = full_text
 
-        for remove_text in [
-            title,
-            author,
-            published_at,
-        ]:
+        for remove_text in [title, author, published_at]:
             if remove_text:
                 content = content.replace(remove_text, " ", 1)
 
-        content = re.sub(
-            r"조회수\s*[:：]?\s*[\d,]+",
-            " ",
-            content,
-        )
+        content = re.sub(r"조회수\s*[:：]?\s*[\d,]+", " ", content)
+        content = re.sub(r"^[\s□■▪●◇◆]+", "", content)
         content = clean_text(content)
 
     return {

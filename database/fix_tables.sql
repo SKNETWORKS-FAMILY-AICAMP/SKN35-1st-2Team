@@ -3,6 +3,15 @@ show databases; -- 현재 존재하는 데이버테이스 목록 확인
 USE car_recall; -- 데이터베이스 선택 car_recall이 없다면 create database car_recall; 실행
 SELECT DATABASE(); -- 선택한 데이터베이스 확인
 
+show tables;
+
+drop table car_recall;
+drop table comments;
+drop table news;
+drop table service_center;
+drop table posts;
+drop table legal_dong;
+
 -- 제조사
 CREATE TABLE manufacturer(
 	id int auto_increment primary key,

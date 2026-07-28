@@ -132,26 +132,26 @@ if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parents[3]
 
     insert_service_center(
-        ROOT / "crawled" / "benz_service_centers.csv",
+        ROOT / "crawled" / "service_center" / "benz_service_centers.csv",
         "벤츠",
     )
 
     insert_service_center(
-        ROOT / "crawled" / "bmw_service_centers.csv",
+        ROOT / "crawled" / "service_center" / "bmw_service_centers.csv",
         "BMW",
     )
 
     insert_service_center(
-        ROOT / "crawled" / "volkswagen_service_centers.csv",
+        ROOT / "crawled" / "service_center" / "volkswagen_service_centers.csv",
         "폭스바겐",
     )
 
     insert_service_center(
-        ROOT / "crawled" / "hyundai_service_centers.csv",
+        ROOT / "crawled" / "service_center" / "hyundai_service_centers.csv",
         "현대",
     )
 
     insert_service_center(
-        ROOT / "crawled" / "kia_service_centers.csv",
+        ROOT / "crawled" / "service_center" / "kia_service_centers.csv",
         "기아",
     )

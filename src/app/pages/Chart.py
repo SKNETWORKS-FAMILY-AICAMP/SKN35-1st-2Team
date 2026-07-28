@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from db.refind_data import (
+from src.db.chart.refind_data import (
     get_company_list,
     get_year_range,
     get_yearly_recall,
@@ -14,6 +14,10 @@ from db.refind_data import (
     get_risk_trend,
 )
 
+st.set_page_config(
+    page_title="Chart",
+    layout="wide",
+)
 # ============== 브랜드 색상 ==============
 BRAND_COLORS = {
     "현대": {"main": "#00AAD2", "dark": "#00728C"},

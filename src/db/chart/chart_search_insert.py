@@ -1,14 +1,11 @@
-import os
 import pandas as pd
-import streamlit as st
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
 from pathlib import Path
 
+from db.engine import get_engine
+
 BASE_DIR = Path(__file__).resolve().parents[2]
-DATA_PATH = BASE_DIR / "data" / "recall_data.csv"
-DATA_PATH2 = BASE_DIR / "data" / "car_faq.csv"
-DATA_PATH3 = BASE_DIR / "crawled" / "recall_news_english_columns.csv"
+
+DATA_PATH = BASE_DIR / "data" / "chart_search" / "recall_data.csv"
 
 # 제조사명 통일
 MANUFACTURER_MAP = {
@@ -20,17 +17,8 @@ MANUFACTURER_MAP = {
     "메르세데스-벤츠": "벤츠",
 }
 
-load_dotenv()
-
-@st.cache_resource # 첫 호출시에만 만들고 그 다음은 캐싱
-def get_engine():
-    return create_engine(
-        f"mysql+mysqlconnector://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}"
-        f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_DATABASE')}?charset=utf8mb4"
-    )
-
-
 def seed_data():
+
     df = pd.read_csv(DATA_PATH)
 
     engine = get_engine()
@@ -76,7 +64,10 @@ def seed_data():
         right_on="name"
     )
 
-    df.rename(columns={"id": "manufacturer_id"}, inplace=True)
+    df.rename(
+        columns={"id": "manufacturer_id"},
+        inplace=True
+    )
 
     # ==============================
     # car_model 저장
@@ -104,11 +95,20 @@ def seed_data():
 
     df = df.merge(
         car_model,
-        left_on=["manufacturer_id", "model_name"],
-        right_on=["manufacturer_id", "name"]
+        left_on=[
+            "manufacturer_id",
+            "model_name"
+        ],
+        right_on=[
+            "manufacturer_id",
+            "name"
+        ]
     )
 
-    df.rename(columns={"id": "car_model_id"}, inplace=True)
+    df.rename(
+        columns={"id": "car_model_id"},
+        inplace=True
+    )
 
     # ==============================
     # car_recall 저장
@@ -135,35 +135,5 @@ def seed_data():
 
     print(f"{len(recall_df)}건 적재 완료")
 
-def seed_data2():
-    """CSV를 faq 테이블에 적재 (최초 1회만 직접 실행)"""
-    df = pd.read_csv(DATA_PATH2)
-    engine = get_engine()
-    df.to_sql(
-        name="faq",
-        con=engine,
-        if_exists="append",
-        index=False,
-        method="multi",
-        chunksize=1000,
-    )
-    print(f"{len(df)}건 적재 완료")
-
-def seed_data3():
-    """CSV를 news 테이블에 적재 (최초 1회만 직접 실행)"""
-    df = pd.read_csv(DATA_PATH3)
-    engine = get_engine()
-    df.to_sql(
-        name="news",
-        con=engine,
-        if_exists="append",
-        index=False,
-        method="multi",
-        chunksize=1000,
-    )
-    print(f"{len(df)}건 적재 완료")
-
 if __name__ == "__main__":
     seed_data()
-    # seed_data2()
-    # seed_data3()

@@ -37,3 +37,7 @@ htmlcov/
 
 # Streamlit
 .streamlit/secrets.toml
+.env
+
+# Agents
+.agents/

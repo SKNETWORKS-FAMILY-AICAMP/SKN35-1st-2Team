@@ -14,6 +14,10 @@ from src.db.chart.refind_data import (
     get_risk_trend,
 )
 
+st.set_page_config(
+    page_title="Chart",
+    layout="wide",
+)
 # ============== 브랜드 색상 ==============
 BRAND_COLORS = {
     "현대": {"main": "#00AAD2", "dark": "#00728C"},

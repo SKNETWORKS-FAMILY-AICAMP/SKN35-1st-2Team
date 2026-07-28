@@ -21,7 +21,7 @@ from src.db.news.db_utils import (
 )
 
 # Streamlit 페이지 기본 설정
-st.set_page_config(page_title="게시글 상세", page_icon="📖", layout="wide")
+st.set_page_config(page_title="Detail Post", layout="wide")
 
 # 3. 세션 상태(st.session_state)에서 전달된 상세 게시글 ID 검증
 post_id = st.session_state.get("detail_post_id")

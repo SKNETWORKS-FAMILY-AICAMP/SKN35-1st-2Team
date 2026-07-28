@@ -14,13 +14,13 @@ if ROOT_DIR not in sys.path:
 from src.db.news.db_utils import get_post, update_post, delete_post, verify_post_password, BRANDS, CATEGORIES
 
 # Streamlit 페이지 기본 레이아웃 및 타이틀 설정
-st.set_page_config(page_title="게시글 수정", page_icon="🛠️", layout="wide")
+st.set_page_config(page_title="Edit Post", layout="wide")
 
 # 상단 내비게이션: 목록 페이지로 돌아가기
 if st.button("← 목록으로 가기"):
     st.switch_page("pages/community.py")
 
-st.title("🛠️ 게시글 수정")
+st.title("게시글 수정")
 
 # 3. 세션 상태(session_state)에서 수정 대상 게시글 ID 추출 및 유효성 검증
 post_id = st.session_state.get("edit_post_id")

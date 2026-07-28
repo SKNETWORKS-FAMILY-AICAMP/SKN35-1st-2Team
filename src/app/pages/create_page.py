@@ -14,7 +14,7 @@ if ROOT_DIR not in sys.path:
 from src.db.news.db_utils import add_post, BRANDS, CATEGORIES
 
 # Streamlit 페이지 설정
-st.set_page_config(page_title="새 게시글 작성", page_icon="✏️", layout="wide")
+st.set_page_config(page_title="Write Post", layout="wide")
 
 # 3. 헤더 앵커 링크 아이콘 숨김 처리 커스텀 CSS
 st.markdown(
@@ -32,7 +32,7 @@ st.markdown(
 if st.button("← 목록으로 가기"):
     st.switch_page("pages/community.py")
 
-st.title("✏️ 새 게시글 작성")
+st.title("새 게시글 작성")
 
 # 4. 게시글 등록 폼(Form) 구성 (clear_on_submit=True: 등록 완료 시 입력 폼 초기화)
 with st.form("write_form", clear_on_submit=True):

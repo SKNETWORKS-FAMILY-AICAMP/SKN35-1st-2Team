@@ -40,8 +40,7 @@ def hex_to_rgba(hex_color: str, alpha: float) -> str:
 # 페이지 기본 설정 및 세션 상태 초기화
 # ==========================
 st.set_page_config(
-    page_title="서비스 센터",
-    page_icon="🔧",
+    page_title="Service Center",
     layout="wide",
 )
 

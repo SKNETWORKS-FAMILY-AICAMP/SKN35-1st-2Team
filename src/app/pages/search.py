@@ -480,29 +480,29 @@ st.markdown(
 # 1. 상단 필터 영역 (드롭다운 + 텍스트 입력 + 조회 버튼을 한 패널에 배치)
 # st.form으로 감싸서 입력창에서 Enter를 눌러도 검색되도록 함
 # ==========================
-with st.container(border=True):
-    with st.form("search_form"):
-        col1, col2, col3, col4 = st.columns([1, 1, 1.4, 0.85])
 
-        with col1:
-            manufacturer_list = ["전체", "벤츠", "BMW", "폭스바겐", "현대", "기아"]
-            manufacturer = st.selectbox("🏭 기업(브랜드)", manufacturer_list)
+with st.form("search_form"):
+    col1, col2, col3, col4 = st.columns([1, 1, 1.4, 0.85])
 
-        with col2:
-            model = st.text_input("🚗 차종", placeholder="검색")
+    with col1:
+        manufacturer_list = ["전체", "벤츠", "BMW", "폭스바겐", "현대", "기아"]
+        manufacturer = st.selectbox("🏭 기업(브랜드)", manufacturer_list)
 
-        with col3:
-            keyword = st.text_input(
-                "⚠️ 결함 키워드", placeholder="예: 브레이크, 엔진, 에어백"
-            )
+    with col2:
+        model = st.text_input("🚗 차종", placeholder="검색")
 
-        with col4:
-            st.markdown(
-                '<div class="field-label-spacer">검색</div>', unsafe_allow_html=True
-            )
-            search_clicked = st.form_submit_button(
-                "🔍 검색", use_container_width=True
-            )
+    with col3:
+        keyword = st.text_input(
+            "⚠️ 결함 키워드", placeholder="예: 브레이크, 엔진, 에어백"
+        )
+
+    with col4:
+        st.markdown(
+            '<div class="field-label-spacer">검색</div>', unsafe_allow_html=True
+        )
+        search_clicked = st.form_submit_button(
+            "🔍 검색", use_container_width=True
+        )
 
 # ==========================
 # 데이터 처리 및 검색 버튼(또는 Enter) 눌렀을 때만 조건/컬러 변경 적용

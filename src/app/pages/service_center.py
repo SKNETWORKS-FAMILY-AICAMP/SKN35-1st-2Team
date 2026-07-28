@@ -3,7 +3,6 @@ import os
 
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
 from db.service_center.service_center import (
@@ -16,6 +15,13 @@ from db.service_center.service_center import (
 load_dotenv()
 
 KAKAO_JS_KEY = os.getenv("KAKAO_JS_KEY")
+
+if not KAKAO_JS_KEY:
+    st.error(
+        "⚠️ KAKAO_JS_KEY 환경변수가 비어 있습니다. 배포 환경(Streamlit Cloud라면 "
+        "App settings → Secrets)에 KAKAO_JS_KEY를 등록했는지 확인해주세요. "
+        "로컬 .env 파일은 배포 서버에 함께 올라가지 않습니다."
+    )
 
 # ==========================
 # 브랜드 컬러 시스템
@@ -375,6 +381,7 @@ st.markdown(
 # 지도 + 리스트를 하나의 컴포넌트로 렌더링
 # ==========================
 def render_map_and_list(df, accent, accent_dark, search_token):
+
     df = df.reset_index(drop=True)
     locations = df.rename(
         columns={
@@ -603,8 +610,6 @@ def render_map_and_list(df, accent, accent_dark, search_token):
     }}
 </style>
 
-<!-- HTTPS 명시 및 autoload=false 파라미터 적용 -->
-<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}&autoload=false"></script>
 </head>
 <body>
 
@@ -620,10 +625,29 @@ def render_map_and_list(df, accent, accent_dark, search_token):
 <script>
 var mapInitialized = false;
 
+function showMapError(message) {{
+    var mapEl = document.getElementById("map");
+    if (!mapEl) return;
+    mapEl.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;' +
+        'height:100%;padding:24px;text-align:center;color:#B91C1C;' +
+        'background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;' +
+        'font-size:13px;line-height:1.6;white-space:pre-line;">' +
+        message + '</div>';
+}}
+
 function initMap() {{
     if (mapInitialized) return;
     if (typeof kakao === 'undefined' || !kakao.maps) {{
         console.error("Kakao Maps SDK가 로드되지 않았습니다.");
+        showMapError(
+            "카카오맵 SDK 로드 실패\\n\\n" +
+            "현재 도메인: " + window.location.hostname + "\\n\\n" +
+            "가장 흔한 원인:\\n" +
+            "1) 카카오 개발자 콘솔 → 내 애플리케이션 → 플랫폼 → Web에\\n" +
+            "   현재 도메인이 등록되어 있지 않음\\n" +
+            "2) KAKAO_JS_KEY 환경변수가 배포 서버에 설정되지 않음"
+        );
         return;
     }}
 
@@ -791,16 +815,43 @@ function initMap() {{
     }});
 }}
 
-window.addEventListener('DOMContentLoaded', initMap);
+function loadKakaoSdk() {{
+    var appkey = "{KAKAO_JS_KEY}";
+
+    if (!appkey) {{
+        showMapError(
+            "KAKAO_JS_KEY가 비어 있어 지도를 불러올 수 없습니다.\\n" +
+            "배포 환경의 환경변수(Secrets) 설정을 확인해주세요."
+        );
+        return;
+    }}
+
+    var script = document.createElement("script");
+    script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" + appkey + "&autoload=false";
+    script.onload = initMap;
+    script.onerror = function () {{
+        showMapError(
+            "카카오맵 SDK 스크립트 로드 실패\\n\\n" +
+            "현재 도메인: " + window.location.hostname + "\\n\\n" +
+            "카카오 개발자 콘솔 → 내 애플리케이션 → 플랫폼 → Web에\\n" +
+            "현재 도메인이 등록되어 있는지 확인해주세요.\\n" +
+            "(https:// 포함, 끝에 슬래시(/) 없이 정확히 등록)"
+        );
+    }};
+    document.head.appendChild(script);
+}}
+
 if (document.readyState === 'complete' || document.readyState === 'interactive') {{
-    initMap();
+    loadKakaoSdk();
+}} else {{
+    window.addEventListener('DOMContentLoaded', loadKakaoSdk);
 }}
 </script>
 
 </body>
 </html>
 """
-    components.html(html, height=596)
+    st.html(html)
 
 
 # ==========================
@@ -920,4 +971,6 @@ if df.empty:
         unsafe_allow_html=True,
     )
 else:
-    render_map_and_list(df, ACCENT, ACCENT_DARK, st.session_state["search_token"])
+    render_map_and_list(
+        df.head(20), ACCENT, ACCENT_DARK, st.session_state["search_token"]
+    )

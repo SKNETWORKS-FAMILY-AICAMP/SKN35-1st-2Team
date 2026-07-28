@@ -31,6 +31,7 @@ section[data-testid="stSidebar"] {
 /* 2. 상단 헤더 위치 보정 (가려짐 방지) 및 본문 패딩 조정 */
 header[data-testid="stHeader"] {
     z-index: 99;
+}
 .sidebar-title{
     text-align:center;
     font-size:26px;
@@ -57,6 +58,7 @@ header[data-testid="stHeader"] {
 }
 
 .sidebar-footer {
+    width: 100%;
     text-align: center;
     color: gray;
     font-size: 14px;
@@ -111,9 +113,8 @@ with st.sidebar:
     st.markdown(
         """
         <div class="sidebar-footer">
-            SKN35<br>
-            1st 2Team<br>
-            화이팅~
+            <div>SKN35</div>
+            <div>1st 2Team</div>
         </div>
         """,
         unsafe_allow_html=True,

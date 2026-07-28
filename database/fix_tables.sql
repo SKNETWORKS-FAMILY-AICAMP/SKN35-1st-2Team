@@ -11,6 +11,9 @@ drop table news;
 drop table service_center;
 drop table posts;
 drop table legal_dong;
+DROP TABLE faq;
+DROP TABLE car_model;
+DROP TABLE manufacturer;
 
 -- 제조사
 CREATE TABLE manufacturer(

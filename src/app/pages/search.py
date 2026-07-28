@@ -97,7 +97,6 @@ st.markdown(
     div[data-testid="stSelectbox"] div[data-baseweb="select"],
     div[data-baseweb="base-input"],
     div[data-testid="stTextInput"] input {{
-        background-color: var(--canvas) !important;
         color: var(--ink) !important;
         border: 1px solid var(--line) !important;
         border-radius: 9px !important;
@@ -500,9 +499,7 @@ with st.form("search_form"):
         st.markdown(
             '<div class="field-label-spacer">검색</div>', unsafe_allow_html=True
         )
-        search_clicked = st.form_submit_button(
-            "🔍 검색", use_container_width=True
-        )
+        search_clicked = st.form_submit_button("🔍 검색", use_container_width=True)
 
 # ==========================
 # 데이터 처리 및 검색 버튼(또는 Enter) 눌렀을 때만 조건/컬러 변경 적용
@@ -537,7 +534,7 @@ if search_clicked:
 # ==========================
 if st.session_state.get("search_error"):
     st.markdown(
-        f"""
+        """
         <div class="result-bar" style="border-left-color:#d9534f !important;">
             <span class="result-location">검색 중 오류가 발생했습니다</span>
             <span class="result-count" style="color:#d9534f;">⚠️</span>
@@ -623,26 +620,26 @@ elif st.session_state.get("search_result") is not None:
             )
             st.markdown(
                 f"""
-                <div class="recall-card" style="border-left: 5px solid; border-image: linear-gradient(180deg, {colors['main']}, {colors['dark']}) 1;">
+                <div class="recall-card" style="border-left: 5px solid; border-image: linear-gradient(180deg, {colors["main"]}, {colors["dark"]}) 1;">
                     <div class="recall-card-header">
                         <div class="recall-title-wrap">
-                            <span class="brand-badge" style="background: {colors['main']};">{brand}</span>
-                            <span class="recall-title">{row.get('차명', '-')}</span>
+                            <span class="brand-badge" style="background: {colors["main"]};">{brand}</span>
+                            <span class="recall-title">{row.get("차명", "-")}</span>
                         </div>
                         <div class="recall-count-badge">{recall_count_display}</div>
                     </div>
                     <div class="recall-info-grid">
                         <div class="recall-info-item">
                             <div class="label">생산기간</div>
-                            <div class="value">{row.get('생산기간_부터', '-')} ~ {row.get('생산기간_까지', '-')}</div>
+                            <div class="value">{row.get("생산기간_부터", "-")} ~ {row.get("생산기간_까지", "-")}</div>
                         </div>
                         <div class="recall-info-item">
                             <div class="label">리콜 개시일</div>
-                            <div class="value">{row.get('리콜개시일', '-')}</div>
+                            <div class="value">{row.get("리콜개시일", "-")}</div>
                         </div>
                     </div>
                     <div class="recall-reason-box">
-                        <div class="recall-reason-text">{row.get('리콜사유', '-')}</div>
+                        <div class="recall-reason-text">{row.get("리콜사유", "-")}</div>
                     </div>
                 </div>
                 """,

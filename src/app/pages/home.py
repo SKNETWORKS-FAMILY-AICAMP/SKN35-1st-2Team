@@ -8,7 +8,12 @@ from src.db.news.db_utils import count_news
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from db.home import get_service_center_count,get_latest_trend, get_news, get_recent_recalls
+from db.home import (
+    get_latest_trend,
+    get_news,
+    get_recent_recalls,
+    get_service_center_count,
+)
 
 trend_df = get_latest_trend()
 recent_df = get_recent_recalls()
@@ -139,6 +144,7 @@ st.markdown(
         font-family: 'Manrope', sans-serif;
         color: var(--ink) !important;
         font-weight: 800 !important;
+        font-size: 1.5rem !important;
     }}
 
     /* ---------- 3분할 카드 패널 ---------- */
@@ -237,7 +243,9 @@ st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 col_recall, col_news, col_center = st.columns(3)
 
 with col_recall:
-    st.markdown('<div class="section-title">🚨 최근 리콜 현황</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-title">🚨 최근 리콜 현황</div>', unsafe_allow_html=True
+    )
     with st.container(border=True):
         for _, row in recent_df.iterrows():
             st.markdown(f"**{row['제조사']}** | {row['차명']}")
@@ -247,7 +255,9 @@ with col_recall:
             st.switch_page("pages/Chart.py")
 
 with col_news:
-    st.markdown('<div class="section-title">📰 최근 리콜 뉴스</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-title">📰 최근 리콜 뉴스</div>', unsafe_allow_html=True
+    )
     with st.container(border=True):
         recent_news = get_news()
         if not recent_news:
@@ -265,7 +275,9 @@ with col_news:
             st.switch_page("pages/news.py")
 
 with col_center:
-    st.markdown('<div class="section-title">📍 내 근처 서비스센터</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-title">📍 내 근처 서비스센터</div>', unsafe_allow_html=True
+    )
     with st.container(border=True):
         st.markdown("🛠️ **블루핸즈 역삼점** (0.8km)")
         st.caption("서울 강남구 테헤란로 | ⭐️ 4.8 (리뷰 120)")
@@ -280,6 +292,6 @@ with col_center:
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 st.markdown(
     '<p class="footer-caption">© 2026 CarMoa Inc. 본 서비스에서 제공하는 리콜 정보는 '
-    '공공데이터포털 및 국토교통부 데이터를 기반으로 제작되었습니다.</p>',
+    "공공데이터포털 및 국토교통부 데이터를 기반으로 제작되었습니다.</p>",
     unsafe_allow_html=True,
 )

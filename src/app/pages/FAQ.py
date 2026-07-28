@@ -38,6 +38,7 @@ CSV_CANDIDATES = [
     Path("car_faq.csv"),
 ]
 
+
 # =========================================================
 # CSV 파일 찾기 및 불러오기
 # =========================================================
@@ -70,8 +71,7 @@ def load_faq_data() -> pd.DataFrame:
 
     if missing_columns:
         raise ValueError(
-            "CSV 파일에 필요한 열이 없습니다: "
-            + ", ".join(sorted(missing_columns))
+            "CSV 파일에 필요한 열이 없습니다: " + ", ".join(sorted(missing_columns))
         )
 
     df["question"] = df["question"].astype(str).str.strip()
@@ -209,17 +209,13 @@ def format_answer(text: str) -> str:
 
         if numbered_match:
             marker, content = numbered_match.groups()
-            formatted_blocks.append(
-                format_numbered_block(marker, content.strip())
-            )
+            formatted_blocks.append(format_numbered_block(marker, content.strip()))
         elif heading_match:
             formatted_blocks.append(
                 format_heading_block(heading_match.group(1).strip())
             )
         elif bullet_match:
-            formatted_blocks.append(
-                format_bullet_block(bullet_match.group(1).strip())
-            )
+            formatted_blocks.append(format_bullet_block(bullet_match.group(1).strip()))
         else:
             sentences = re.split(r"(?<=[다요]\.)\s+", block)
             paragraph_html = []
@@ -370,7 +366,7 @@ st.markdown(
     /* 답변 상자 스타일 */
     .faq-answer-container {{
         padding: 1.2rem 1.5rem;
-        background-color: var(--canvas);
+        background-color: var(--surface);
         border-radius: 12px;
         border-left: 4px solid var(--accent);
         margin-top: -0.4rem;

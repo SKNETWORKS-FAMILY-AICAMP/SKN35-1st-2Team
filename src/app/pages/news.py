@@ -1,7 +1,8 @@
-import os
-import sys
 import math
+import os
 import re
+import sys
+
 import streamlit as st
 
 # src 및 루트 디렉토리를 sys.path 최상단에 추가
@@ -13,10 +14,12 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 import importlib
+
 import src.db.news.db_utils
+
 importlib.reload(src.db.news.db_utils)
 
-from src.db.news.db_utils import get_news, count_news, get_news_sources
+from src.db.news.db_utils import get_news, get_news_sources
 
 NEWS_PER_PAGE = 8
 PAGE_BLOCK_SIZE = 5
@@ -85,7 +88,6 @@ st.markdown(
     div[data-testid="stSelectbox"] div[data-baseweb="select"],
     div[data-baseweb="base-input"],
     div[data-testid="stTextInput"] input {{
-        background-color: var(--canvas) !important;
         color: var(--ink) !important;
         border: 1px solid var(--line) !important;
         border-radius: 9px !important;
@@ -348,10 +350,18 @@ def reset_news_filters():
 
 # 4. 검색 필터 및 입력 영역 (언론사/출처 필터 추가 & 오래된순 정렬)
 available_sources = ["전체"] + get_news_sources()
-source_idx = available_sources.index(st.session_state["saved_news_source"]) if st.session_state["saved_news_source"] in available_sources else 0
+source_idx = (
+    available_sources.index(st.session_state["saved_news_source"])
+    if st.session_state["saved_news_source"] in available_sources
+    else 0
+)
 
 sort_options = ["최신순", "오래된순"]
-sort_idx = sort_options.index(st.session_state["saved_news_sort"]) if st.session_state["saved_news_sort"] in sort_options else 0
+sort_idx = (
+    sort_options.index(st.session_state["saved_news_sort"])
+    if st.session_state["saved_news_sort"] in sort_options
+    else 0
+)
 
 with st.container(border=True):
     col1, col2, col3, col4, col5 = st.columns([1.1, 2.5, 0.9, 0.75, 0.75])
@@ -436,14 +446,17 @@ else:
         with st.container(border=True):
             top_c1, top_c2 = st.columns([4, 1.2])
             with top_c1:
-                highlighted_title = highlight_text(news['title'], keyword)
-                st.markdown(f'<div class="news-title">{highlighted_title}</div>', unsafe_allow_html=True)
+                highlighted_title = highlight_text(news["title"], keyword)
+                st.markdown(
+                    f'<div class="news-title">{highlighted_title}</div>',
+                    unsafe_allow_html=True,
+                )
             with top_c2:
                 st.markdown(
                     f'<div style="text-align: right; color: var(--accent); font-size: 14px; font-weight: 600;">'
-                    f'📰 {news["source"] or "국토교통부"}'
-                    f'</div>',
-                    unsafe_allow_html=True
+                    f"📰 {news['source'] or '국토교통부'}"
+                    f"</div>",
+                    unsafe_allow_html=True,
                 )
 
             st.caption(f"📅 보도일자: **{news['published_at']}**")
@@ -453,8 +466,8 @@ else:
             st.markdown(
                 f'<div class="news-summary-box">'
                 f'<p class="news-summary-text">{highlighted_summary}</p>'
-                f'</div>',
-                unsafe_allow_html=True
+                f"</div>",
+                unsafe_allow_html=True,
             )
 
 
@@ -466,8 +479,10 @@ block_start_page = block_index * PAGE_BLOCK_SIZE + 1
 block_end_page = block_start_page + PAGE_BLOCK_SIZE - 1
 valid_pages = list(range(block_start_page, min(block_end_page, total_pages) + 1))
 
+
 def go_page(p):
     st.session_state["news_page"] = p
+
 
 _, center_page_col, _ = st.columns([0.6, 2.8, 0.6])
 with center_page_col:
@@ -477,14 +492,24 @@ with center_page_col:
 
     # 1. 맨 첫 페이지 이동 버튼
     with p_cols[0]:
-        if st.button("« 처음", key="p_first", use_container_width=True, disabled=(current_page == 1)):
+        if st.button(
+            "« 처음",
+            key="p_first",
+            use_container_width=True,
+            disabled=(current_page == 1),
+        ):
             go_page(1)
             st.rerun()
 
     # 2. 이전 페이지 이동 버튼
     with p_cols[1]:
         prev_target = max(1, current_page - 1)
-        if st.button("◀ 이전", key="p_prev", use_container_width=True, disabled=(current_page == 1)):
+        if st.button(
+            "◀ 이전",
+            key="p_prev",
+            use_container_width=True,
+            disabled=(current_page == 1),
+        ):
             go_page(prev_target)
             st.rerun()
 
@@ -492,19 +517,34 @@ with center_page_col:
     for idx, p_num in enumerate(valid_pages):
         with p_cols[2 + idx]:
             btn_type = "primary" if p_num == current_page else "secondary"
-            if st.button(str(p_num), key=f"p_btn_{p_num}", type=btn_type, use_container_width=True):
+            if st.button(
+                str(p_num),
+                key=f"p_btn_{p_num}",
+                type=btn_type,
+                use_container_width=True,
+            ):
                 go_page(p_num)
                 st.rerun()
 
     # 4. 다음 페이지 이동 버튼
     with p_cols[2 + len(valid_pages)]:
         next_target = min(total_pages, current_page + 1)
-        if st.button("다음 ▶", key="p_next", use_container_width=True, disabled=(current_page == total_pages)):
+        if st.button(
+            "다음 ▶",
+            key="p_next",
+            use_container_width=True,
+            disabled=(current_page == total_pages),
+        ):
             go_page(next_target)
             st.rerun()
 
     # 5. 맨 마지막 페이지 이동 버튼
     with p_cols[3 + len(valid_pages)]:
-        if st.button("마지막 »", key="p_last", use_container_width=True, disabled=(current_page == total_pages)):
+        if st.button(
+            "마지막 »",
+            key="p_last",
+            use_container_width=True,
+            disabled=(current_page == total_pages),
+        ):
             go_page(total_pages)
             st.rerun()

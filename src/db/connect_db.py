@@ -156,7 +156,7 @@ def seed_news_data3():
     df.to_sql(
         name="news",
         con=engine,
-        if_exists="replace",
+        if_exists="append",
         index=False,
         method="multi",
         chunksize=1000,

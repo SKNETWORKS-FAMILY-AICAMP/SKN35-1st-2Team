@@ -35,7 +35,7 @@ def highlight_text(text: str, keyword: str) -> str:
 
 
 # 1. 페이지 기본 설정 및 다크모드 대응 커스텀 CSS
-st.set_page_config(page_title="News", layout="wide")
+st.set_page_config(page_title="News",layout="wide")
 
 st.markdown(
     """
@@ -79,13 +79,13 @@ st.markdown(
     font-size: 22px;
     font-weight: 800;
     line-height: 1.4;
-    color: #0F172A !important;
+    color: var(--text-color, inherit) !important;
     margin-bottom: 4px;
     letter-spacing: -0.02em;
     }
     /* 뉴스 본문 카드 요약 외곽 상자 */
     .news-summary-box {
-    background: #FFFFFF !important;
+    background: var(--secondary-background-color, #FFFFFF) !important;
     border: 1px solid #E7EAF0 !important;
     padding: 12px 16px !important;
     border-radius: 10px !important;
@@ -97,7 +97,7 @@ st.markdown(
         font-size: 14.5px !important;
         line-height: 1.4em !important;
         max-height: 2.8em !important; /* 1.4em * 2줄 = 정확히 2.8em */
-        color: #1F2937 !important;
+        color: var(--text-color, #1F2937) !important;
         margin: 0 !important;
         padding: 0 !important;
         display: -webkit-box !important;
@@ -109,6 +109,38 @@ st.markdown(
     }
     .news-summary-text mark {
         color: #111111 !important;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .news-title {
+            color: #FFFFFF !important;
+        }
+        .news-summary-box {
+            background: #1E293B !important;
+            border-color: #334155 !important;
+        }
+        .news-summary-text {
+            color: #E2E8F0 !important;
+        }
+    }
+
+    [data-theme="dark"] .news-title,
+    .stApp[data-theme="dark"] .news-title,
+    [data-testid="stAppViewContainer"][data-theme="dark"] .news-title {
+        color: #FFFFFF !important;
+    }
+
+    [data-theme="dark"] .news-summary-box,
+    .stApp[data-theme="dark"] .news-summary-box,
+    [data-testid="stAppViewContainer"][data-theme="dark"] .news-summary-box {
+        background: #1E293B !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .news-summary-text,
+    .stApp[data-theme="dark"] .news-summary-text,
+    [data-testid="stAppViewContainer"][data-theme="dark"] .news-summary-text {
+        color: #E2E8F0 !important;
     }
 
     [data-theme="dark"] a.news-link-btn,
@@ -222,7 +254,7 @@ sort_idx = sort_options.index(st.session_state["saved_news_sort"]) if st.session
 col1, col2, col3, col4, col5 = st.columns([1.1, 2.5, 0.9, 0.75, 0.75])
 with col1:
     st.selectbox(
-        "언론사/출처",
+        "출처",
         available_sources,
         index=source_idx,
         key="news_source",

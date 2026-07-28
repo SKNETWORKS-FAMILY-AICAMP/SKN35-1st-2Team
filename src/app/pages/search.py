@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="자동차 리콜·결함 안전등급 대시보드", layout="wide")
+st.set_page_config(page_title="Search", layout="wide")
 
 # ---------------------------
 # 샘플 데이터 (나중에 DB로 교체 예정)
@@ -43,7 +43,7 @@ df_all = pd.DataFrame(data)
 # ---------------------------
 # 화면 구성
 # ---------------------------
-st.title("🚗 자동차 리콜·결함 안전등급 대시보드")
+st.title("자동차 리콜·결함 안전등급 대시보드")
 st.caption("차종 · 기업 · 결함 안전등급을 검색해보세요")
 
 st.divider()

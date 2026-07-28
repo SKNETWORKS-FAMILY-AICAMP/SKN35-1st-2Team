@@ -74,19 +74,19 @@ header[data-testid="stHeader"] {
 )
 
 # -------------------- Page --------------------
-home = st.Page("pages/home.py", title="Home", icon="🏠")
+home = st.Page("pages/home.py", title="Home")
 
-page1 = st.Page("pages/Chart.py", title="Chart", icon="📈")
+page1 = st.Page("pages/Chart.py", title="Chart")
 
-page2 = st.Page("pages/search.py", title="Search", icon="🔍")
+page2 = st.Page("pages/search.py", title="Search")
 
-page3 = st.Page("pages/FAQ.py", title="FAQ", icon="❓")
+page3 = st.Page("pages/FAQ.py", title="FAQ")
 
-page4 = st.Page("pages/news.py", title="News", icon="📰")
+page4 = st.Page("pages/news.py", title="News")
 
-page5 = st.Page("pages/service_center.py", title="Service Center", icon="🗺️")
+page5 = st.Page("pages/service_center.py", title="Service Center")
 
-page6 = st.Page("pages/community.py", title="Community", icon="💬")
+page6 = st.Page("pages/community.py", title="Community")
 
 page7 = st.Page("pages/create_page.py", title="글작성")
 
@@ -103,13 +103,13 @@ pg = st.navigation(
 with st.sidebar:
     st.title("🚗 차모아 (CarMoa)")
     st.markdown("---")
-    st.page_link("pages/home.py", label="Home", icon="🏠")
-    st.page_link("pages/Chart.py", label="Chart", icon="📈")
-    st.page_link("pages/search.py", label="Search", icon="🔍")
-    st.page_link("pages/FAQ.py", label="FAQ", icon="❓")
-    st.page_link("pages/news.py", label="News", icon="📰")
-    st.page_link("pages/service_center.py", label="Service Center", icon="🗺️")
-    st.page_link("pages/community.py", label="Community", icon="💬")
+    st.page_link("pages/home.py", label="Home")
+    st.page_link("pages/Chart.py", label="Chart")
+    st.page_link("pages/search.py", label="Search")
+    st.page_link("pages/FAQ.py", label="FAQ")
+    st.page_link("pages/news.py", label="News")
+    st.page_link("pages/service_center.py", label="Service Center")
+    st.page_link("pages/community.py", label="Community")
 
     st.markdown("---")
 

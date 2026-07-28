@@ -29,7 +29,6 @@ if ROOT_DIR not in sys.path:
 # 1. 페이지 기본 설정
 st.set_page_config(
     page_title="차모아 - 자동차 리콜 & 서비스센터",
-    page_icon="🚗",
     layout="wide",
     initial_sidebar_state="expanded",
 )

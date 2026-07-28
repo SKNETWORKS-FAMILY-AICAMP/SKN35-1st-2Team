@@ -1,6 +1,7 @@
 import json
 import os
 
+import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
@@ -856,7 +857,7 @@ if "map_result" not in st.session_state:
         sigungu=st.session_state["applied_sigungu"],
     )
 
-df = st.session_state["map_result"]
+df = pd.DataFrame(st.session_state["map_result"])
 
 # 라벨에 적용된 상태 반영
 app_sido = st.session_state["applied_sido"]

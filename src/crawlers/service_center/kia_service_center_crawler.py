@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from src.services.geocoding import enrich_with_coords
-from src.services.phone_format import format_phone
+from src.utils.geocoding import enrich_with_coords
+from src.utils.phone_format import format_phone
 
 URL = "https://members.kia.com/kr/knet/searchAsaList.do"
 

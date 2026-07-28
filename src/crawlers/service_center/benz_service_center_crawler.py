@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from src.services.phone_format import format_phone
+from src.utils.phone_format import format_phone
 
 LIST_API = "https://api.oneweb.mercedes-benz.com/dms-plus/v3/api/dealers/market"
 

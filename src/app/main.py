@@ -108,7 +108,7 @@ with st.sidebar:
     st.page_link("pages/search.py", label="Search", icon="🔍")
     st.page_link("pages/FAQ.py", label="FAQ", icon="❓")
     st.page_link("pages/news.py", label="News", icon="📰")
-    st.page_link("pages/service_center.py", label="Service_Center", icon="🗺️")
+    st.page_link("pages/service_center.py", label="Service Center", icon="🗺️")
     st.page_link("pages/community.py", label="Community", icon="💬")
 
     st.markdown("---")
@@ -125,3 +125,4 @@ with st.sidebar:
     )
 
 pg.run()
+

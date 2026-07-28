@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from src.services.phone_format import format_phone
+from src.utils.phone_format import format_phone
 
 URL = "https://www.hyundai.com/wsvc/kr/front/biz/serviceNetwork.list.do"
 

@@ -69,7 +69,7 @@ brand_name_dict = {
 }
 
 applied_company = st.session_state["applied_company"]
-brand_name = brand_name_dict[applied_company]
+brand_name = brand_name_dict.get(applied_company, applied_company)
 
 _accent = BRAND_COLORS.get(applied_company, DEFAULT_ACCENT)
 ACCENT = _accent["main"]
@@ -85,11 +85,6 @@ st.markdown(
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
 
-    /* ==========================================
-    [1. 테마 변수]
-    config.toml(base="light")로 테마가 고정되어 있으므로
-    여기서는 다크모드 방어용 !important 없이 색상 변수만 정의.
-    ========================================== */
     :root {{
         --accent: {ACCENT};
         --accent-dark: {ACCENT_DARK};
@@ -107,11 +102,7 @@ st.markdown(
         background-color: var(--canvas);
     }}
 
-    /* ==========================================
-    [2. 셀렉트박스 & 인풋 스타일]
-    BaseWeb 컴포넌트 기본 스타일을 덮어쓰기 위한 것으로,
-    특이도 문제 때문에 !important가 필요함(다크모드와는 무관).
-    ========================================== */
+    /* 셀렉트박스 & 인풋 스타일 */
     div[data-testid="stSelectbox"] div[data-baseweb="select"],
     div[data-baseweb="base-input"] {{
         background-color: var(--canvas) !important;
@@ -121,18 +112,15 @@ st.markdown(
         box-shadow: none !important;
     }}
 
-    /* 셀렉트박스 호버 시 테두리 액센트 컬러 */
     div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover {{
         border-color: var(--accent) !important;
     }}
 
-    /* 셀렉트박스 텍스트 & 아이콘 색상 */
     div[data-testid="stSelectbox"] div[data-baseweb="select"] * {{
         color: var(--ink) !important;
         fill: var(--ink) !important;
     }}
 
-    /* 셀렉트박스 라벨(제목) 글자색 */
     div[data-testid="stSelectbox"] label p {{
         font-size: 0.76rem !important;
         font-weight: 700 !important;
@@ -142,14 +130,12 @@ st.markdown(
         text-transform: uppercase;
     }}
 
-    /* 드롭다운 메뉴 팝업 (클릭 시 나오는 전체 리스트) */
     div[data-baseweb="popover"] ul[data-baseweb="menu"],
     ul[data-testid="stSelectboxVirtualDropdown"] {{
         background-color: var(--surface) !important;
         border-color: var(--line) !important;
     }}
 
-    /* 드롭다운 개별 옵션 아이템 */
     li[data-baseweb="option"] {{
         background-color: var(--surface) !important;
         color: var(--ink) !important;
@@ -161,7 +147,6 @@ st.markdown(
         color: var(--ink) !important;
     }}
 
-    /* 비활성화된 셀렉트박스(시/군/구 미선택 시) */
     div[data-testid="stSelectbox"] div[data-baseweb="select"][aria-disabled="true"] {{
         background-color: #EEF1F5 !important;
         border: 1px dashed #CBD5E1 !important;
@@ -388,7 +373,6 @@ st.markdown(
 
 # ==========================
 # 지도 + 리스트를 하나의 컴포넌트로 렌더링
-# (같은 iframe/JS 스코프 안에 있어야 리스트 클릭 -> 지도 포커스가 가능함)
 # ==========================
 def render_map_and_list(df, accent, accent_dark, search_token):
     df = df.reset_index(drop=True)
@@ -619,8 +603,8 @@ def render_map_and_list(df, accent, accent_dark, search_token):
     }}
 </style>
 
-<!-- HTTPS 및 카카오 SDK 동기식 로딩으로 변경 -->
-<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}"></script>
+<!-- HTTPS 명시 및 autoload=false 파라미터 적용 -->
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}&autoload=false"></script>
 </head>
 <body>
 
@@ -634,13 +618,18 @@ def render_map_and_list(df, accent, accent_dark, search_token):
 </div>
 
 <script>
+var mapInitialized = false;
+
 function initMap() {{
+    if (mapInitialized) return;
     if (typeof kakao === 'undefined' || !kakao.maps) {{
         console.error("Kakao Maps SDK가 로드되지 않았습니다.");
         return;
     }}
 
+    // autoload=false 환경이므로 kakao.maps.load() 명시적 실행
     kakao.maps.load(function () {{
+        mapInitialized = true;
         var data = {location_json};
         var accentColor = "{accent}";
 
@@ -815,8 +804,7 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 
 
 # ==========================
-# 1. 상단 필터 영역 (드롭다운 3개 + 조회 버튼을 한 줄/한 패널에 배치해서
-#    라인하이트나 위치가 서로 어긋나지 않게 함)
+# 1. 상단 필터 영역
 # ==========================
 with st.container(border=True):
     col_sido, col_sigungu, col_company, col_button = st.columns([1, 1, 1, 0.85])
@@ -846,8 +834,6 @@ with st.container(border=True):
         )
         selected_company = st.selectbox("🏭 제조사", brand_keys, index=default_index)
 
-    # 화면에 보이는 선택값이 마지막으로 "조회하기"를 눌렀던 조건과 다르면
-    # 아직 반영되지 않은 변경사항이 있다는 뜻 -> 버튼을 눈에 띄게 강조
     is_dirty = (
         selected_sido != st.session_state["applied_sido"]
         or selected_sigungu != st.session_state["applied_sigungu"]
@@ -855,8 +841,6 @@ with st.container(border=True):
     )
 
     with col_button:
-        # 셀렉트박스들과 같은 높이의 라벨 자리(투명)를 만들어서
-        # 버튼이 셀렉트박스와 정확히 같은 줄에 오도록 맞춤
         st.markdown(
             '<div class="field-label-spacer">조회</div>', unsafe_allow_html=True
         )
@@ -873,7 +857,7 @@ if is_dirty:
 
 
 # ==========================
-# 데이터 처리 및 조회 버튼 눌렀을 때만 조건/컬러 변경 적용
+# 데이터 처리 및 조건 적용
 # ==========================
 if search_clicked:
     st.session_state["applied_company"] = selected_company
@@ -887,7 +871,6 @@ if search_clicked:
     )
     st.rerun()
 
-# 최초 실행 시 데이터 로드
 if "map_result" not in st.session_state:
     st.session_state["map_result"] = get_service_centers(
         company=st.session_state["applied_company"],
@@ -897,7 +880,6 @@ if "map_result" not in st.session_state:
 
 df = pd.DataFrame(st.session_state["map_result"])
 
-# 라벨에 적용된 상태 반영
 app_sido = st.session_state["applied_sido"]
 app_sigungu = st.session_state["applied_sigungu"]
 
@@ -910,7 +892,7 @@ else:
 
 
 # ==========================
-# 2. 결과 요약 바 (전체 너비로 중간 배치)
+# 2. 결과 요약 바
 # ==========================
 st.markdown(
     f"""
@@ -924,7 +906,7 @@ st.markdown(
 
 
 # ==========================
-# 3. 지도 + 리스트 영역 (하나의 컴포넌트로 결합)
+# 3. 지도 + 리스트 영역
 # ==========================
 if df.empty:
     st.markdown(

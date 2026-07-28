@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from db.refind_data import (
+from src.db.chart.refind_data import (
     get_company_list,
     get_year_range,
     get_yearly_recall,

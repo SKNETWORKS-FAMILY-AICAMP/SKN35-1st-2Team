@@ -11,7 +11,7 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 # 2. DB 작성 유틸리티 함수 및 선택 옵션 (브랜드, 카테고리) 임포트
-from db.db_utils import add_post, BRANDS, CATEGORIES
+from src.db.news.db_utils import add_post, BRANDS, CATEGORIES
 
 # Streamlit 페이지 설정
 st.set_page_config(page_title="새 게시글 작성", page_icon="✏️", layout="wide")
@@ -73,4 +73,4 @@ with st.form("write_form", clear_on_submit=True):
         else:
             add_post(title.strip(), content.strip(), brand, model.strip(), category, author.strip() or "익명", password.strip())
             st.success("게시글이 등록되었습니다!")
-            st.switch_page("pages/community.py")
+            st.switch_page("pages/community.py")

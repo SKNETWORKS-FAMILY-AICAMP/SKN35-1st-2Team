@@ -20,7 +20,7 @@ if ROOT_DIR not in sys.path:
 
 import streamlit as st
 
-from db.db_utils import init_db
+from src.db.news.db_utils import init_db
 
 init_db()
 

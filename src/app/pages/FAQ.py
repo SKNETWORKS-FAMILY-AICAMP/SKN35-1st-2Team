@@ -6,7 +6,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-
 # =========================================================
 # 기본 설정
 # =========================================================
@@ -14,12 +13,11 @@ MAX_LINE_LENGTH = 74
 
 CURRENT_DIR = Path(__file__).resolve().parent
 CSV_CANDIDATES = [
-    CURRENT_DIR / "data" / "car_faq.csv",
-    CURRENT_DIR.parent / "data" / "car_faq.csv",
-    Path("data/car_faq.csv"),
+    CURRENT_DIR / "data" / "faq" / "car_faq.csv",
+    CURRENT_DIR.parent / "data" / "faq" / "car_faq.csv",
+    Path("data/faq/car_faq.csv"),
     Path("car_faq.csv"),
 ]
-
 
 # =========================================================
 # CSV 파일 찾기 및 불러오기

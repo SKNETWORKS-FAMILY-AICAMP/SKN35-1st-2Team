@@ -11,7 +11,7 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 # 2. DB 조작 함수 및 카테고리/브랜드 데이터 유틸리티 모듈 임포트
-from db.db_utils import get_post, update_post, delete_post, verify_post_password, BRANDS, CATEGORIES
+from src.db.news.db_utils import get_post, update_post, delete_post, verify_post_password, BRANDS, CATEGORIES
 
 # Streamlit 페이지 기본 레이아웃 및 타이틀 설정
 st.set_page_config(page_title="게시글 수정", page_icon="🛠️", layout="wide")
@@ -85,4 +85,4 @@ with st.form("edit_form"):
             
             # 사용 후 수정 세션 변수 삭제 및 커뮤니티 목록으로 이탈
             del st.session_state["edit_post_id"]
-            st.switch_page("pages/community.py")
+            st.switch_page("pages/community.py")

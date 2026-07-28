@@ -13,10 +13,10 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 import importlib
-import db.db_utils
-importlib.reload(db.db_utils)
+import src.db.news.db_utils
+importlib.reload(src.db.news.db_utils)
 
-from db.db_utils import get_news, count_news, get_news_sources
+from src.db.news.db_utils import get_news, count_news, get_news_sources
 
 NEWS_PER_PAGE = 8
 PAGE_BLOCK_SIZE = 5

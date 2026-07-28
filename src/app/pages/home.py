@@ -4,12 +4,11 @@ from pathlib import Path
 
 import streamlit as st
 
-from db.db_utils import count_news, get_news
+from src.db.news.db_utils import count_news
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from db.home import get_service_center_count
-from db.refind_data import get_latest_trend, get_news, get_recent_recalls
+from db.home import get_service_center_count,get_latest_trend, get_news, get_recent_recalls
 
 trend_df = get_latest_trend()
 recent_df = get_recent_recalls()

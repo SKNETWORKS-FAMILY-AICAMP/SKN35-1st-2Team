@@ -12,10 +12,10 @@ if ROOT_DIR not in sys.path:
 
 # 2. 모듈 핫 리로드 (db_utils 변경 사항 실시간 반영)
 import importlib
-import db.db_utils
-importlib.reload(db.db_utils)
+import src.db.news.db_utils
+importlib.reload(src.db.news.db_utils)
 
-from db.db_utils import (
+from src.db.news.db_utils import (
     get_post, like_post, unlike_post, get_comments, add_comment, increment_views,
     verify_comment_password, update_comment, delete_comment, verify_post_password, delete_post
 )

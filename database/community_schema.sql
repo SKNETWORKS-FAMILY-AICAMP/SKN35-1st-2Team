@@ -1,13 +1,7 @@
 -- 커뮤니티(소통공간) 테이블 생성 DDL
 
-SHOW DATABASES; -- 데이터 베이스 존재 확인
+USE car_recall;
 
-CREATE DATABASE car_recall; -- car_recall 데이터베이스가 존재하지 않는다면 실행하여 생성
-
-USE car_recall; -- 데이터베이스 선택
-
-
--- 게시글 테이블 생성
 CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL COMMENT '게시글 제목',
@@ -26,8 +20,6 @@ CREATE TABLE IF NOT EXISTS posts (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- 댓글 테이블 생성
 CREATE TABLE IF NOT EXISTS comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     post_id INT NOT NULL COMMENT '게시글 ID',

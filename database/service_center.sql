@@ -1,3 +1,5 @@
+DROP DATABASE car_recall;
+
 SHOW DATABASES; -- 데이터 베이스 존재 확인
 
 CREATE DATABASE car_recall; -- car_recall 데이터베이스가 존재하지 않는다면 실행하여 생성

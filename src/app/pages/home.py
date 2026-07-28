@@ -23,6 +23,10 @@ prev = trend_df.iloc[-2]
 
 recall_diff = latest["리콜건수"] - prev["리콜건수"]
 vehicle_diff = latest["리콜대상차량수"] - prev["리콜대상차량수"]
+
+recall_color = "red" if recall_diff > 0 else "blue"
+vehicle_color = "red" if vehicle_diff > 0 else "blue"
+
 SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if SRC_DIR not in sys.path:
@@ -212,21 +216,21 @@ with col1:
     st.metric(
         label=f"{trend_df.index[-1]}년 리콜 건수",
         value=f"{int(latest['리콜건수']):,}건",
-        delta=f"{recall_diff:+,}건",
-        delta_color="inverse",
+        delta=f"{int(recall_diff):+,}건",
+        delta_color=recall_color,
     )
 
 with col2:
     st.metric(
         label=f"{trend_df.index[-1]}년 리콜 대상 차량 수",
         value=f"{int(latest['리콜대상차량수']):,}대",
-        delta=f"{vehicle_diff:+,}대",
-        delta_color="inverse",
+        delta=f"{int(vehicle_diff):+,}대",
+        delta_color=vehicle_color,
     )
 with col3:
     total_news_count = count_news()
     st.metric(
-        label="자동차 주요 뉴스", value=f"{total_news_count} 건", delta="실시간 동기화"
+        label="자동차 주요 뉴스", value=f"{total_news_count} 건", delta="실시간 동기화", delta_color="red"
     )
 with col4:
     service_center_count = get_service_center_count()
@@ -236,6 +240,7 @@ with col4:
         label="제휴 서비스센터 수",
         value=f"{service_center_count:,} 곳",
         delta="전국 커버",
+        delta_color="red"
     )
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -244,7 +249,7 @@ col_recall, col_news, col_center = st.columns(3)
 
 with col_recall:
     st.markdown(
-        '<div class="section-title">🚨 최근 리콜 현황</div>', unsafe_allow_html=True
+        '<div class="section-title">🚨 리콜 현황</div>', unsafe_allow_html=True
     )
     with st.container(border=True):
         for _, row in recent_df.iterrows():
@@ -256,7 +261,7 @@ with col_recall:
 
 with col_news:
     st.markdown(
-        '<div class="section-title">📰 최근 리콜 뉴스</div>', unsafe_allow_html=True
+        '<div class="section-title">📰 리콜 뉴스</div>', unsafe_allow_html=True
     )
     with st.container(border=True):
         recent_news = get_news()

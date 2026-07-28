@@ -20,11 +20,6 @@ if ROOT_DIR not in sys.path:
 
 import streamlit as st
 
-from src.db.news.db_utils import init_db
-
-init_db()
-
-# -------------------- CSS --------------------
 # -------------------- CSS --------------------
 st.markdown(
     """
@@ -125,4 +120,3 @@ with st.sidebar:
     )
 
 pg.run()
-

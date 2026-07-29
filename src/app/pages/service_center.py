@@ -435,6 +435,7 @@ def render_map_and_list(df, accent, accent_dark, search_token):
 <html>
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
 <style>
@@ -620,7 +621,14 @@ def render_map_and_list(df, accent, accent_dark, search_token):
         border: 1px solid #E2E8F0;
     }}
 </style>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}"></script>
+
+<script>
+window.kakao = window.kakao || {{}};
+window.kakao.maps = window.kakao.maps || {{}};
+window.daum = window.daum || {{}};
+window.daum.maps = window.daum.maps || {{}};
+</script>
+
 </head>
 <body>
 
@@ -637,140 +645,231 @@ def render_map_and_list(df, accent, accent_dark, search_token):
 var data = {location_json};
 var accentColor = "{accent}";
 
-var container = document.getElementById("map");
-var options = {{
-    center: new kakao.maps.LatLng(36.5, 127.8),
-    level: 12
-}};
+// ============================================================
+// 지도/마커 초기화 로직을 함수로 분리.
+// 이 함수는 카카오 SDK 다운로드가 "완전히" 끝난 뒤에만 호출됨
+// (script.onload -> kakao.maps.load(initMap))
+// 기존 코드는 SDK 로드를 기다리지 않고 별도로 kakao.maps.load(...)를
+// 즉시 호출해서, SDK가 늦게 도착하면 kakao.maps가 아직 빈 객체({{}})라서
+// "kakao.maps.load is not a function" 에러가 발생했음.
+// ============================================================
+function initMap() {{
 
-var map = new kakao.maps.Map(container, options);
+    var container = document.getElementById("map");
 
-var bounds = new kakao.maps.LatLngBounds();
-var activeInfoWindow = null;
-var activeCardEl = null;
-var markers = [];
-var infoWindows = [];
-var validMarkerCount = 0;
+    var options = {{
+        center: new kakao.maps.LatLng(36.5, 127.8),
+        level: 12
+    }};
 
-var markerImage = new kakao.maps.MarkerImage(
-    "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">' +
-        '<path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 25 17 25s17-12.3 17-25C34 7.6 26.4 0 17 0z" fill="' + accentColor + '"/>' +
-        '<circle cx="17" cy="17" r="7" fill="#fff"/>' +
-        '</svg>'
-    ),
-    new kakao.maps.Size(34, 42),
-    {{ offset: new kakao.maps.Point(17, 42) }}
-);
+    var map = new kakao.maps.Map(container, options);
 
-function openInfo(idx) {{
-    if (activeInfoWindow) {{
-        activeInfoWindow.close();
-    }}
-    var marker = markers[idx];
-    var info = infoWindows[idx];
-    if (!marker || !info) {{
-        return;
-    }}
-    info.open(map, marker);
-    activeInfoWindow = info;
-}}
+    var bounds = new kakao.maps.LatLngBounds();
+    var activeInfoWindow = null;
+    var activeCardEl = null;
 
-function highlightCard(idx) {{
-    if (activeCardEl) {{
-        activeCardEl.classList.remove('active');
-    }}
-    var el = document.querySelector('.center-card[data-index="' + idx + '"]');
-    if (el) {{
-        el.classList.add('active');
-        activeCardEl = el;
-    }}
-}}
+    var markers = [];
+    var infoWindows = [];
+    var validMarkerCount = 0;
 
-// 리스트 카드를 누르면 해당 마커로 지도를 이동/확대하고 인포윈도우를 연다
-function focusCenter(idx) {{
-    console.log(idx, markers[idx]);
-    var marker = markers[idx];
 
-    if (!marker) {{
-        return;
-    }}
+    var markerImage = new kakao.maps.MarkerImage(
+        "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42">' +
+            '<path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 25 17 25s17-12.3 17-25C34 7.6 26.4 0 17 0z" fill="' + accentColor + '"/>' +
+            '<circle cx="17" cy="17" r="7" fill="#fff"/>' +
+            '</svg>'
+        ),
+        new kakao.maps.Size(34, 42),
+        {{
+        offset: new kakao.maps.Point(17, 42)
+        }}
+    );
 
-    var pos = marker.getPosition();
 
-    map.setLevel(3);
+    function openInfo(idx) {{
+        if (activeInfoWindow) {{
+            activeInfoWindow.close();
+        }}
 
-    setTimeout(function () {{
-        map.panTo(pos);
-        openInfo(idx);
-        highlightCard(idx);
-    }}, 100);
-}}
+        var marker = markers[idx];
+        var info = infoWindows[idx];
 
-// iframe이 완전히 자리잡기 전에 지도가 초기화되면 크기 계산이 어긋나서
-// 마커가 뒤늦게(두번째 상호작용에야) 나타나는 문제가 있어, 한 틱 늦춰서
-// relayout을 먼저 하고 그 다음에 마커/바운드를 계산한다.
-setTimeout(function() {{
-    map.relayout();
-
-    data.forEach(function(center, idx) {{
-        var lat = parseFloat(center.위도);
-        var lng = parseFloat(center.경도);
-
-        if (isNaN(lat) || isNaN(lng) || lat < 33 || lat > 39 || lng < 124 || lng > 132) {{
-            markers.push(null);
-            infoWindows.push(null);
+        if (!marker || !info) {{
             return;
         }}
 
-        var position = new kakao.maps.LatLng(lat, lng);
+        info.open(map, marker);
+        activeInfoWindow = info;
+    }}
 
-        var marker = new kakao.maps.Marker({{
-            map: map,
-            position: position,
-            image: markerImage
-        }});
 
-        var directionsUrl = "https://map.kakao.com/link/search/" + center.주소 + " " + center.센터명;
+    function highlightCard(idx) {{
+        if (activeCardEl) {{
+            activeCardEl.classList.remove("active");
+        }}
 
-        var content = `
-            <div class="info-card">
-                <div class="info-title">${{center.센터명}}</div>
-                <div class="info-addr">${{center.주소}}</div>
-                <div class="info-actions">
-                    <a href="tel:${{center.전화번호}}" class="info-phone">📞 ${{center.전화번호}}</a>
-                    <a href="${{directionsUrl}}" target="_blank" class="info-direction">🧭 길찾기</a>
-                </div>
-            </div>
-        `;
+        var el = document.querySelector(
+            '.center-card[data-index="' + idx + '"]'
+        );
 
-        var info = new kakao.maps.InfoWindow({{
-            content: content,
-            removable: true
-        }});
-
-        kakao.maps.event.addListener(marker, "click", function() {{
-            openInfo(idx);
-            highlightCard(idx);
-        }});
-
-        markers.push(marker);
-        infoWindows.push(info);
-        bounds.extend(position);
-        validMarkerCount++;
-    }});
-
-    if (validMarkerCount > 0) {{
-        if (validMarkerCount === 1) {{
-            map.setCenter(bounds.getSouthWest());
-            map.setLevel(4);
-        }} else {{
-            map.setBounds(bounds);
+        if (el) {{
+            el.classList.add("active");
+            activeCardEl = el;
         }}
     }}
 
-    map.relayout();
-}}, 60);
+
+    window.focusCenter = function(idx) {{
+
+        var marker = markers[idx];
+
+        if (!marker) {{
+            return;
+        }}
+
+        var pos = marker.getPosition();
+
+        map.setLevel(3);
+
+        setTimeout(function() {{
+            map.panTo(pos);
+            openInfo(idx);
+            highlightCard(idx);
+        }}, 100);
+
+    }};
+
+
+    setTimeout(function(){{
+
+        map.relayout();
+
+
+        data.forEach(function(center, idx) {{
+
+            var lat = parseFloat(center.위도);
+            var lng = parseFloat(center.경도);
+
+
+            if (
+                isNaN(lat) ||
+                isNaN(lng) ||
+                lat < 33 ||
+                lat > 39 ||
+                lng < 124 ||
+                lng > 132
+            ) {{
+                markers.push(null);
+                infoWindows.push(null);
+                return;
+            }}
+
+
+            var position = new kakao.maps.LatLng(lat, lng);
+
+
+            var marker = new kakao.maps.Marker({{
+                map: map,
+                position: position,
+                image: markerImage
+            }});
+
+
+            var directionsUrl =
+                "https://map.kakao.com/link/search/" +
+                center.주소 +
+                " " +
+                center.센터명;
+
+
+            var content = `
+                <div class="info-card">
+                    <div class="info-title">${{center.센터명}}</div>
+                    <div class="info-addr">${{center.주소}}</div>
+
+                    <div class="info-actions">
+                        <a href="tel:${{center.전화번호}}" class="info-phone">
+                            📞 ${{center.전화번호}}
+                        </a>
+
+                        <a href="${{directionsUrl}}" target="_blank" class="info-direction">
+                            🧭 길찾기
+                        </a>
+                    </div>
+                </div>
+            `;
+
+
+            var info = new kakao.maps.InfoWindow({{
+                content: content,
+                removable: true
+            }});
+
+
+            kakao.maps.event.addListener(
+                marker,
+                "click",
+                function() {{
+                    openInfo(idx);
+                    highlightCard(idx);
+                }}
+            );
+
+
+            markers.push(marker);
+            infoWindows.push(info);
+
+            bounds.extend(position);
+
+            validMarkerCount++;
+
+        }});
+
+
+        if (validMarkerCount > 0) {{
+
+            if (validMarkerCount === 1) {{
+
+                map.setCenter(
+                    bounds.getSouthWest()
+                );
+
+                map.setLevel(4);
+
+            }} else {{
+
+                map.setBounds(bounds);
+
+            }}
+
+        }}
+
+
+        map.relayout();
+
+
+    }}, 60);
+
+}}
+
+
+// ============================================================
+// SDK 스크립트를 삽입하고, 다운로드가 "완전히" 끝난 뒤(script.onload)에만
+// kakao.maps.load(initMap)을 호출해서 initMap이 절대 먼저 실행되지 않도록 보장.
+// ============================================================
+(function() {{
+    var script = document.createElement("script");
+
+    script.src =
+        "https://dapi.kakao.com/v2/maps/sdk.js?appkey={KAKAO_JS_KEY}&autoload=false";
+
+    script.onload = function() {{
+        kakao.maps.load(initMap);
+    }};
+
+    document.head.appendChild(script);
+}})();
 </script>
 
 </body>

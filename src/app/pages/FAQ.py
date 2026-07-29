@@ -278,10 +278,15 @@ st.markdown(
 
     /* ---------- 헤더 ---------- */
     .main-header {{
-        margin-bottom: 0.4rem;
-        padding-bottom: 1.2rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 1.6rem;
+        padding-bottom: 1.4rem;
         border-bottom: 1px solid var(--line);
+        height: 100%;
     }}
+
     .main-header .eyebrow {{
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.72rem;
@@ -294,6 +299,7 @@ st.markdown(
         align-items: center;
         gap: 0.4rem;
     }}
+
     .main-header .eyebrow::before {{
         content: "";
         width: 7px;
@@ -302,6 +308,7 @@ st.markdown(
         background: var(--accent);
         box-shadow: 0 0 0 4px var(--accent-soft);
     }}
+
     .main-header h1 {{
         font-family: 'Manrope', sans-serif;
         font-size: 2.05rem !important;
@@ -310,10 +317,17 @@ st.markdown(
         margin: 0 0 0.35rem 0;
         letter-spacing: -0.03em;
     }}
+
     .main-header p {{
         color: var(--ink-soft) !important;
         font-size: 0.94rem;
         margin: 0;
+    }}
+
+    div.stLinkButton {{
+        display: flex;
+        align-items: flex-end;
+        height: 100%;
     }}
 
     /* 자동차 리콜센터 바로가기 버튼 */
@@ -480,31 +494,31 @@ st.markdown(
 # TOP 버튼 앵커
 st.markdown('<div id="faq-top"></div>', unsafe_allow_html=True)
 
-title_col, spacer_col, link_col = st.columns(
-    [3, 6, 3],
-    vertical_alignment="center",
+header_col, button_col = st.columns(
+    [8, 2],
+    vertical_alignment="bottom",
 )
 
-with title_col:
+with header_col:
     st.markdown(
         """
         <div class="main-header">
-            <div class="eyebrow">Frequently Asked</div>
-            <h1>FAQ</h1>
+            <div>
+                <div class="eyebrow">Frequently Asked</div>
+                <h1>FAQ</h1>
+                <p>자동차 리콜 및 제작결함과 관련하여 자주 묻는 질문을 확인해 보세요.</p>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-with link_col:
+with button_col:
     st.link_button(
         "🚗 자동차 리콜센터 바로가기",
         "https://www.car.go.kr",
         use_container_width=True,
     )
-
-st.write("자동차 리콜 및 제작결함과 관련하여 자주 묻는 질문을 확인해 보세요.")
-st.divider()
 
 
 try:

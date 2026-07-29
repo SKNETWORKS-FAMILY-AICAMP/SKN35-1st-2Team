@@ -198,6 +198,13 @@ st.markdown(
     }}
 
     /* ---------- Metric 카드 (위험도 탭) ---------- */
+    div[data-testid="stMetricDelta"] svg {{
+        display: none !important;
+    }}
+
+    div[data-testid="stMetricDelta"] {{
+        font-weight: 700 !important;
+    }}
     div[data-testid="stMetric"] {{
         background: var(--surface);
         border: 1px solid var(--line);
@@ -216,6 +223,7 @@ st.markdown(
         font-family: 'Manrope', sans-serif;
         color: var(--ink) !important;
         font-weight: 800 !important;
+        font-size: 1.5rem !important;
     }}
 </style>
 """,
@@ -438,7 +446,7 @@ elif graph_type == "위험도":
 
             if len(chart_df) >= 13:
                 prev = chart_df["리콜건수"].iloc[-13]
-                compare_text = "전년 동월 대비"
+                compare_text = "전년 대비"
 
             else:
                 prev = latest
@@ -447,20 +455,22 @@ elif graph_type == "위험도":
             diff = latest - prev
 
             if diff > 0:
-                trend = "📈 증가"
+                trend = "↑ 증가"
                 delta_color = "red"
+
             elif diff < 0:
-                trend = "📉 감소"
+                trend = "↓ 감소"
                 delta_color = "blue"
+
             else:
-                trend = "➡ 유지"
+                trend = "→ 유지"
                 delta_color = "off"
 
             with col:
                 st.metric(
                     label=f"{company} ({chart_df.index[-1]})",
                     value=f"{latest:,}건",
-                    delta=f"{compare_text} {diff:+,}건 ({trend})",
+                    delta=f"{trend} {compare_text} {diff:+,}건",
                     delta_color=delta_color
                 )
 

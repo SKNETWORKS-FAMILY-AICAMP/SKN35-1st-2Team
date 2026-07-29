@@ -71,3 +71,14 @@ INSERT INTO news (id, title, summary, url, source, published_at) VALUES (14, '�
 
 
 SELECT * FROM faq;
+
+-- 테이블 지우기
+DROP TABLE car_model;
+DROP TABLE car_recall;
+DROP TABLE comments;
+DROP TABLE faq;
+DROP TABLE legal_dong;
+DROP TABLE manufacturer;
+DROP TABLE news;
+DROP TABLE posts;
+DROP TABLE service_center;
